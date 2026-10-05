@@ -1627,7 +1627,9 @@
       document.getElementById("cardPoints").textContent = Number(member.points || 0).toLocaleString();
       document.getElementById("cardBranch").textContent = member.branch || "จอหอ";
 
-      document.getElementById("dashCurrentPoints").textContent = Number(member.points || 0).toLocaleString() + " คะแนน";
+      const pointsPerBaht = (currentMemberData && currentMemberData.config && currentMemberData.config.pointsPerBaht) ? currentMemberData.config.pointsPerBaht : 10;
+      const discountVal = Math.floor(Number(member.points || 0) / pointsPerBaht);
+      document.getElementById("dashCurrentPoints").innerHTML = Number(member.points || 0).toLocaleString() + ' คะแนน' + (discountVal > 0 ? `<span style="font-size: 11px; color: var(--gold); display: block; font-weight: normal; margin-top: 2px;">(แลกรับส่วนลดได้ ฿${discountVal.toLocaleString()})</span>` : '');
       document.getElementById("dashTotalSpent").textContent = "฿" + Number(member.totalSpent || 0).toLocaleString();
       
       document.getElementById("dashPhone").textContent = member.phone || "-";

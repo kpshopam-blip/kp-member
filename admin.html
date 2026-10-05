@@ -512,6 +512,7 @@
       </div>
 
       <!-- Overview Stats -->
+      <!-- Overview Stats -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
@@ -548,9 +549,13 @@
         <div class="action-bar">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="memberSearchInput" class="search-input" placeholder="พิมพ์ชื่อ, เบอร์โทร, เลขบัตร 13 หลัก หรือรหัสสมาชิก..." oninput="filterMembers()">
+            <input type="text" id="memberSearchInput" class="search-input" placeholder="พิมพ์เบอร์โทร (เช่น 097...), ชื่อ, เลขบัตร หรือรหัสสมาชิก..." oninput="filterMembers()">
           </div>
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <!-- ปุ่มสลับเรียงลำดับ ล่าสุดขึ้นก่อน / เก่าสุดขึ้นก่อน -->
+            <button type="button" class="btn-nav" id="btnSortOrder" onclick="toggleSortOrder()" style="background: rgba(212,175,55,0.15); border-color: var(--gold); color: var(--gold);">
+              <i class="fa-solid fa-arrow-down-wide-short"></i> <span id="sortOrderText">ล่าสุดขึ้นก่อน ⬇️</span>
+            </button>
             <button type="button" class="btn-excel" onclick="exportMembersToExcel()">
               <i class="fa-solid fa-file-excel"></i> ดาวน์โหลดรายงาน Excel (.xlsx)
             </button>
@@ -561,15 +566,19 @@
           <table>
             <thead>
               <tr>
-                <th>รหัสสมาชิก</th>
+                <th onclick="toggleSortOrder('id')" style="cursor: pointer;" title="คลิกเพื่อสลับการเรียงลำดับ">
+                  รหัสสมาชิก <i class="fa-solid fa-sort"></i>
+                </th>
                 <th>ชื่อ - นามสกุล</th>
                 <th>เบอร์โทร</th>
                 <th>สาขา</th>
                 <th>คะแนนคงเหลือ</th>
                 <th>ยอดซื้อสะสม</th>
                 <th>รุ่นโทรศัพท์</th>
-                <th>วันที่สมัคร</th>
-                <th>จัดการ</th>
+                <th onclick="toggleSortOrder('date')" style="cursor: pointer;" title="คลิกเพื่อสลับการเรียงลำดับ">
+                  วันที่สมัคร <i class="fa-solid fa-sort"></i>
+                </th>
+                <th>จัดการ (ให้/ลดแต้ม)</th>
               </tr>
             </thead>
             <tbody id="memberTableBody">
@@ -630,19 +639,31 @@
 
       <!-- TAB 4: SETTINGS (RATE POINTS & PIN) -->
       <div id="tabSettings" class="tab-content hidden">
-        <div style="max-width: 500px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 24px;">
+        <div style="max-width: 540px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 24px;">
           <h4 style="color: var(--gold); margin-bottom: 16px;">
             <i class="fa-solid fa-sliders"></i> ตั้งค่าระบบและอัตราคะแนนสะสม
           </h4>
 
           <div class="form-group">
-            <label class="form-label">ยอดซื้อกี่บาท = 1 คะแนน (เช่น 100 หรือ 50 บาท)</label>
+            <label class="form-label">🛒 อัตราสะสมแต้ม: ยอดซื้อกี่บาท = 1 คะแนน (เช่น 100 หรือ 50 บาท)</label>
             <input type="number" id="settingRatePerPoint" class="form-control" value="100" min="1">
             <small style="color: var(--text-muted); font-size: 11px;">ระบบจะใช้ค่านี้ในการคำนวณแต้มให้อัตโนมัติเมื่อกรอกยอดซื้อของลูกค้า</small>
           </div>
 
           <div class="form-group">
-            <label class="form-label">รหัส PIN สำรองสำหรับเข้าสู่ระบบหลังบ้าน</label>
+            <label class="form-label">🎁 คะแนนแรกเข้าสำหรับสมาชิกใหม่ (Welcome Points)</label>
+            <input type="number" id="settingWelcomePoints" class="form-control" value="0" min="0">
+            <small style="color: var(--text-muted); font-size: 11px;">ลูกค้าที่สมัครสมาชิกใหม่จะได้รับคะแนนนี้ทันทีเมื่อลงทะเบียนสำเร็จ (ใส่ 0 หากไม่มี)</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🏷️ อัตราการแลกแต้มเป็นส่วนลด: กี่คะแนน แลกได้ 1 บาท</label>
+            <input type="number" id="settingPointsPerBaht" class="form-control" value="10" min="1">
+            <small style="color: var(--text-muted); font-size: 11px;">เช่น 10 คะแนน = ส่วนลด 1 บาท (หรือ 100 แต้ม = 10 บาท)</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🔑 รหัส PIN สำรองสำหรับเข้าสู่ระบบหลังบ้าน</label>
             <input type="text" id="settingAdminPin" class="form-control" value="8888" maxlength="8">
             <small style="color: var(--text-muted); font-size: 11px;">สำหรับเข้าหลังบ้านกรณีเปิดผ่านคอมพิวเตอร์ทั่วไป</small>
           </div>
@@ -683,11 +704,11 @@
 
   </div>
 
-  <!-- MODAL: จัดการคะแนน (Point Adjustment) -->
+  <!-- MODAL: จัดการคะแนน (Point Adjustment: เพิ่มแต้ม / ลดแต้ม) -->
   <div class="modal-overlay" id="modalPoints">
     <div class="modal-box">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-gem text-gold"></i> ให้ / หัก คะแนนสะสม</h3>
+        <h3 id="modalPointsTitle"><i class="fa-solid fa-gem text-gold"></i> ให้ / หัก คะแนนสะสม</h3>
         <button type="button" class="modal-close" onclick="closeModal('modalPoints')"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -698,15 +719,22 @@
 
       <div class="form-group">
         <label class="form-label">ประเภทการทำรายการ</label>
-        <select id="pointAdjustType" class="form-control" onchange="calculateAutoPoints()">
-          <option value="add">➕ เพิ่มคะแนนสะสม (ยอดซื้อสินค้า/บริการ)</option>
-          <option value="sub">➖ หักคะแนน (แลกรับของรางวัล/ส่วนลด)</option>
+        <select id="pointAdjustType" class="form-control" onchange="onPointTypeChange()">
+          <option value="add">➕ เพิ่มคะแนนสะสม (จากยอดซื้อสินค้า/บริการ)</option>
+          <option value="sub">➖ หักคะแนน / ลดแต้ม (แลกรับของรางวัลหรือส่วนลด)</option>
         </select>
       </div>
 
+      <!-- กล่องกรอกยอดซื้อ สำหรับคำนวณเพิ่มแต้ม -->
       <div class="form-group" id="groupSpentAmount">
         <label class="form-label">ยอดซื้อสินค้า/บริการ (บาท) - คำนวณแต้มให้อัตโนมัติ</label>
         <input type="number" id="pointSpentAmount" class="form-control" placeholder="เช่น 500" min="0" oninput="calculateAutoPoints()">
+      </div>
+
+      <!-- กล่องกรอกยอดเงินส่วนลด สำหรับคำนวณหักแต้ม -->
+      <div class="form-group hidden" id="groupDiscountAmount">
+        <label class="form-label">ต้องการแลกส่วนลด (บาท) - คำนวณแต้มหักให้อัตโนมัติ</label>
+        <input type="number" id="pointDiscountAmount" class="form-control" placeholder="เช่น 50" min="0" oninput="calculateAutoPoints()">
       </div>
 
       <div class="point-preview-box">
@@ -720,8 +748,8 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">หมายเหตุ / รายการซื้อ</label>
-        <input type="text" id="pointNote" class="form-control" placeholder="เช่น ซ่อมหน้าจอ, เปลี่ยนแบต, ซื้อเคส">
+        <label class="form-label">หมายเหตุ / รายการทำรายการ</label>
+        <input type="text" id="pointNote" class="form-control" placeholder="เช่น ซ่อมหน้าจอ, เปลี่ยนแบต, แลกส่วนลดค่าบริการ">
       </div>
 
       <input type="hidden" id="pointTargetRow">
@@ -1030,10 +1058,72 @@
       document.getElementById("statRatePoint").textContent = (config.ratePerPoint || 100) + " บ./แต้ม";
     }
 
+    // สถานะการเรียงลำดับ: desc = ล่าสุดขึ้นก่อน (ค่าเริ่มต้น), asc = เก่าสุดขึ้นก่อน
+    let currentSortOrder = "desc";
+    let currentSortField = "id";
+
+    function toggleSortOrder(field = "id") {
+      if (currentSortField === field) {
+        currentSortOrder = (currentSortOrder === "desc") ? "asc" : "desc";
+      } else {
+        currentSortField = field;
+        currentSortOrder = "desc";
+      }
+
+      const sortBtnText = document.getElementById("sortOrderText");
+      if (sortBtnText) {
+        sortBtnText.textContent = (currentSortOrder === "desc") ? "ล่าสุดขึ้นก่อน ⬇️" : "เก่าสุดขึ้นก่อน ⬆️";
+      }
+
+      filterMembers();
+    }
+
+    function sortMembersList(list) {
+      return [...list].sort((a, b) => {
+        let valA, valB;
+        if (currentSortField === "date") {
+          valA = new Date(a.registerDate || 0).getTime();
+          valB = new Date(b.registerDate || 0).getTime();
+        } else {
+          valA = Number(a.id || a.rowNumber || 0);
+          valB = Number(b.id || b.rowNumber || 0);
+        }
+
+        if (currentSortOrder === "desc") {
+          return valB - valA;
+        } else {
+          return valA - valB;
+        }
+      });
+    }
+
+    // แปลงเบอร์โทร 66xxxxxxxxx หรือ +66xxxxxxxxx -> 0xxxxxxxxx
+    function normalizePhone(p) {
+      if (!p) return "";
+      let clean = String(p).replace(/\D/g, "");
+      if (clean.startsWith("66") && clean.length >= 11) {
+        clean = "0" + clean.substring(2);
+      }
+      return clean;
+    }
+
+    // จัดรูปแบบแสดงผลเบอร์โทรศัพท์ให้อ่านง่ายสไตล์ไทย (097-136-0324)
+    function formatPhoneDisplay(p) {
+      if (!p) return "-";
+      let clean = normalizePhone(p);
+      if (clean.length === 10 && clean.startsWith("0")) {
+        return clean.substring(0, 3) + "-" + clean.substring(3, 6) + "-" + clean.substring(6);
+      }
+      if (clean.length === 9 && clean.startsWith("0")) {
+        return clean.substring(0, 2) + "-" + clean.substring(2, 5) + "-" + clean.substring(5);
+      }
+      return clean || String(p);
+    }
+
     function renderMembersTable(members) {
       const tbody = document.getElementById("memberTableBody");
       if (!members || members.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">ไม่พบข้อมูลสมาชิก</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">ไม่พบข้อมูลสมาชิกที่ค้นหา</td></tr>';
         return;
       }
 
@@ -1041,18 +1131,21 @@
         <tr>
           <td><span class="badge badge-gold">${escapeHtml(m.memberCode || ("KP-" + String(m.id).padStart(4, '0')))}</span></td>
           <td><b>${escapeHtml(m.fullName || m.lineDisplayName)}</b></td>
-          <td>${escapeHtml(m.phone || "-")}</td>
+          <td><b>${escapeHtml(formatPhoneDisplay(m.phone))}</b></td>
           <td><span class="badge badge-branch">${escapeHtml(m.branch || "จอหอ")}</span></td>
           <td><b style="color: var(--gold);">${Number(m.points || 0).toLocaleString()}</b> แต้ม</td>
           <td>฿${Number(m.totalSpent || 0).toLocaleString()}</td>
           <td><small>${escapeHtml(m.phoneModels || "-")}</small></td>
           <td><small>${escapeHtml(m.registerDate || "-")}</small></td>
           <td>
-            <div style="display: flex; gap: 6px;">
-              <button type="button" class="btn-action point" onclick="openPointModal(${m.rowNumber})">
-                <i class="fa-solid fa-gem"></i> ให้แต้ม
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="btn-action point" onclick="openPointModal(${m.rowNumber}, 'add')" title="เพิ่มคะแนนจากยอดซื้อ">
+                <i class="fa-solid fa-plus"></i> เพิ่มแต้ม
               </button>
-              <button type="button" class="btn-action" onclick="openEditMemberModal(${m.rowNumber})">
+              <button type="button" class="btn-action" style="color: var(--danger); border-color: rgba(255,69,58,0.4);" onclick="openPointModal(${m.rowNumber}, 'sub')" title="หักคะแนน / ลดแต้ม">
+                <i class="fa-solid fa-minus"></i> ลดแต้ม
+              </button>
+              <button type="button" class="btn-action" onclick="openEditMemberModal(${m.rowNumber})" title="แก้ไขข้อมูลลูกค้า">
                 <i class="fa-solid fa-pen"></i> แก้ไข
               </button>
               <button type="button" class="btn-action" onclick="toggleAdminRole('${escapeHtml(m.lineUid)}', '${escapeHtml(m.fullName)}', '${escapeHtml(m.phone)}')">
@@ -1065,37 +1158,50 @@
     }
 
     function filterMembers() {
-      const query = document.getElementById("memberSearchInput").value.toLowerCase().trim();
-      if (!query) {
-        renderMembersTable(allMembers);
-        return;
+      const queryRaw = document.getElementById("memberSearchInput").value.trim().toLowerCase();
+      const queryDigits = queryRaw.replace(/\D/g, "");
+      const queryNormalized = normalizePhone(queryDigits);
+
+      let list = allMembers;
+
+      if (queryRaw) {
+        list = allMembers.filter(m => {
+          const name = String(m.fullName || "").toLowerCase();
+          const lineName = String(m.lineDisplayName || "").toLowerCase();
+          const memberPhoneRaw = String(m.phone || "").replace(/\D/g, "");
+          const memberPhoneNormalized = normalizePhone(memberPhoneRaw);
+          const idCard = String(m.idCard || "").replace(/\D/g, "");
+          const code = String(m.memberCode || "").toLowerCase();
+          const branch = String(m.branch || "").toLowerCase();
+          const models = String(m.phoneModels || "").toLowerCase();
+
+          // ค้นหาเบอร์โทรแบบยืดหยุ่น: ทั้ง 097..., 97..., 6697..., หรือมีขีด
+          const matchPhone = (queryDigits.length >= 2) && (
+            memberPhoneRaw.includes(queryDigits) ||
+            memberPhoneNormalized.includes(queryDigits) ||
+            (queryNormalized && memberPhoneNormalized.includes(queryNormalized)) ||
+            (queryNormalized && memberPhoneRaw.includes(queryNormalized))
+          );
+
+          return matchPhone ||
+                 name.includes(queryRaw) ||
+                 lineName.includes(queryRaw) ||
+                 idCard.includes(queryDigits) ||
+                 code.includes(queryRaw) ||
+                 branch.includes(queryRaw) ||
+                 models.includes(queryRaw);
+        });
       }
 
-      const filtered = allMembers.filter(m => {
-        const name = String(m.fullName || "").toLowerCase();
-        const lineName = String(m.lineDisplayName || "").toLowerCase();
-        const phone = String(m.phone || "").replace(/\D/g, "");
-        const idCard = String(m.idCard || "").replace(/\D/g, "");
-        const code = String(m.memberCode || "").toLowerCase();
-        const branch = String(m.branch || "").toLowerCase();
-        const models = String(m.phoneModels || "").toLowerCase();
-
-        return name.includes(query) ||
-               lineName.includes(query) ||
-               phone.includes(query) ||
-               idCard.includes(query) ||
-               code.includes(query) ||
-               branch.includes(query) ||
-               models.includes(query);
-      });
-
-      renderMembersTable(filtered);
+      // เรียงลำดับตามที่ผู้ใช้เลือก (ค่าเริ่มต้น: ล่าสุดขึ้นก่อน)
+      const sortedList = sortMembersList(list);
+      renderMembersTable(sortedList);
     }
 
     // ====================================================
-    // POINT ADJUSTMENT (ให้คะแนน / หักคะแนน)
+    // POINT ADJUSTMENT (เพิ่มแต้ม / ลดแต้ม)
     // ====================================================
-    function openPointModal(rowNumber) {
+    function openPointModal(rowNumber, defaultType = 'add') {
       const member = allMembers.find(m => m.rowNumber === rowNumber);
       if (!member) return;
 
@@ -1106,25 +1212,49 @@
       document.getElementById("pointMemberCurrentPoints").textContent = Number(member.points || 0).toLocaleString();
 
       document.getElementById("pointSpentAmount").value = "";
+      document.getElementById("pointDiscountAmount").value = "";
       document.getElementById("pointManualPoints").value = "";
       document.getElementById("pointNote").value = "";
-      document.getElementById("pointAdjustType").value = "add";
+      document.getElementById("pointAdjustType").value = defaultType;
+
+      onPointTypeChange();
+      openModal("modalPoints");
+    }
+
+    function onPointTypeChange() {
+      const type = document.getElementById("pointAdjustType").value;
+      const groupSpent = document.getElementById("groupSpentAmount");
+      const groupDiscount = document.getElementById("groupDiscountAmount");
+      const titleEl = document.getElementById("modalPointsTitle");
+
+      if (type === "add") {
+        groupSpent.classList.remove("hidden");
+        groupDiscount.classList.add("hidden");
+        titleEl.innerHTML = '<i class="fa-solid fa-plus text-gold"></i> เพิ่มคะแนนสะสม (จากยอดซื้อ)';
+      } else {
+        groupSpent.classList.add("hidden");
+        groupDiscount.classList.remove("hidden");
+        titleEl.innerHTML = '<i class="fa-solid fa-minus text-gold" style="color: var(--danger);"></i> หักคะแนน / ลดแต้ม (แลกรับส่วนลด)';
+      }
 
       calculateAutoPoints();
-      openModal("modalPoints");
     }
 
     function calculateAutoPoints() {
       const type = document.getElementById("pointAdjustType").value;
       const spent = Number(document.getElementById("pointSpentAmount").value) || 0;
+      const discount = Number(document.getElementById("pointDiscountAmount").value) || 0;
       const rate = systemConfig.ratePerPoint || 100;
+      const pointsPerBaht = systemConfig.pointsPerBaht || 10;
       const manual = Number(document.getElementById("pointManualPoints").value);
 
       let calc = 0;
       if (manual && manual > 0) {
         calc = manual;
-      } else if (spent > 0) {
+      } else if (type === "add" && spent > 0) {
         calc = Math.floor(spent / rate);
+      } else if (type === "sub" && discount > 0) {
+        calc = Math.floor(discount * pointsPerBaht);
       }
 
       const previewEl = document.getElementById("previewCalculatedPoints");
@@ -1444,15 +1574,23 @@
     function renderSettingsTab(config) {
       if (!config) return;
       document.getElementById("settingRatePerPoint").value = config.ratePerPoint || 100;
+      document.getElementById("settingWelcomePoints").value = (config.welcomePoints !== undefined) ? config.welcomePoints : 0;
+      document.getElementById("settingPointsPerBaht").value = config.pointsPerBaht || 10;
       document.getElementById("settingAdminPin").value = config.adminSecretPin || "8888";
     }
 
     async function saveSystemSettings() {
       const rate = Number(document.getElementById("settingRatePerPoint").value);
+      const welcome = Number(document.getElementById("settingWelcomePoints").value);
+      const perBaht = Number(document.getElementById("settingPointsPerBaht").value);
       const pin = document.getElementById("settingAdminPin").value.trim();
 
       if (!rate || rate <= 0) {
         Swal.fire({ icon: "warning", title: "กรุณาระบุอัตราคะแนนที่มากกว่า 0", confirmButtonColor: "#d4af37" });
+        return;
+      }
+      if (!perBaht || perBaht <= 0) {
+        Swal.fire({ icon: "warning", title: "กรุณาระบุอัตราแลกแต้มเป็นเงินส่วนลดที่มากกว่า 0", confirmButtonColor: "#d4af37" });
         return;
       }
 
@@ -1460,6 +1598,8 @@
         const res = await callGasApi({
           action: "adminSaveSettings",
           ratePerPoint: rate,
+          welcomePoints: welcome,
+          pointsPerBaht: perBaht,
           adminSecretPin: pin
         });
 
