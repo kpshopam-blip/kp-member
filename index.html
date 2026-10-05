@@ -1197,24 +1197,31 @@
         });
       }
 
-      // พยายามยิง POST ก่อน (พร้อม redirect: follow)
+      // พยายามยิง POST ก่อน (พร้อม redirect: follow และ omit credentials)
       try {
         const res = await fetch(GAS_API_URL, {
           method: "POST",
+          credentials: "omit",
+          cache: "no-store",
           redirect: "follow",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
-        const json = await res.json();
-        return json;
+        const text = await res.text();
+        return JSON.parse(text);
       } catch (postErr) {
         console.warn("POST fetch failed, attempting GET fallback:", postErr);
         // Auto-Fallback ส่งผ่าน GET กรณีเบราว์เซอร์ติดข้อจำกัด CORS POST
-        const query = (payload.action === "checkMember") 
-          ? `?action=checkMember&lineUid=${encodeURIComponent(payload.lineUid || "")}`
-          : `?action=${encodeURIComponent(payload.action)}&data=${encodeURIComponent(JSON.stringify(payload))}`;
-        const res = await fetch(GAS_API_URL + query, { redirect: "follow" });
-        return await res.json();
+        try {
+          const query = (payload.action === "checkMember") 
+            ? `?action=checkMember&lineUid=${encodeURIComponent(payload.lineUid || "")}`
+            : `?action=${encodeURIComponent(payload.action)}&data=${encodeURIComponent(JSON.stringify(payload))}`;
+          const res = await fetch(GAS_API_URL + query, { credentials: "omit", cache: "no-store", redirect: "follow" });
+          const text = await res.text();
+          return JSON.parse(text);
+        } catch (getErr) {
+          throw new Error("การเชื่อมต่อขัดข้อง กรุณาลองใหม่อีกครั้ง");
+        }
       }
     }
 

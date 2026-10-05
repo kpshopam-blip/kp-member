@@ -879,6 +879,9 @@
       // 1. ตรวจสอบว่ามี Session Admin ส่งมาจาก index.html หรือไม่
       const sessionUid = sessionStorage.getItem("KP_ADMIN_LINE_UID");
       const sessionName = sessionStorage.getItem("KP_ADMIN_NAME");
+      const sessionPin = sessionStorage.getItem("KP_ADMIN_PIN") || "8888";
+
+      currentAdminAuth.pin = sessionPin;
 
       if (sessionUid) {
         currentAdminAuth.lineUid = sessionUid;
@@ -919,10 +922,11 @@
         return;
       }
       currentAdminAuth.pin = pin;
+      sessionStorage.setItem("KP_ADMIN_PIN", pin);
       loadDashboardData();
     }
 
-    // ฟังก์ชันยิง API กลาง
+    // ฟังก์ชันยิง API กลาง (ปลอดภัย ไม่ติดคุกกี้ Google ข้ามโดเมน)
     async function callGasApi(payload) {
       if (typeof google !== "undefined" && google.script && google.script.run) {
         return new Promise((resolve, reject) => {
@@ -934,24 +938,40 @@
 
       const bodyPayload = {
         ...payload,
-        adminLineUid: currentAdminAuth.lineUid,
-        adminPin: currentAdminAuth.pin,
-        adminName: currentAdminAuth.name
+        adminLineUid: currentAdminAuth.lineUid || "",
+        adminPin: currentAdminAuth.pin || "8888",
+        adminName: currentAdminAuth.name || "Admin"
       };
 
       try {
+        // ใช้ credentials: "omit" เพื่อป้องกันปัญหา Google Multi-login 404
         const res = await fetch(GAS_API_URL, {
           method: "POST",
+          credentials: "omit",
+          cache: "no-store",
           redirect: "follow",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(bodyPayload)
         });
-        return await res.json();
+
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch (jsonErr) {
+          console.warn("POST response is not JSON:", text);
+          throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง");
+        }
       } catch (postErr) {
-        console.warn("POST failed, fallback to GET:", postErr);
-        const query = `?action=${encodeURIComponent(payload.action)}&data=${encodeURIComponent(JSON.stringify(bodyPayload))}`;
-        const res = await fetch(GAS_API_URL + query, { redirect: "follow" });
-        return await res.json();
+        console.warn("POST failed, attempting fallback:", postErr);
+        // Fallback ส่งผ่าน GET
+        try {
+          const query = `?action=${encodeURIComponent(payload.action)}&data=${encodeURIComponent(JSON.stringify(bodyPayload))}`;
+          const res = await fetch(GAS_API_URL + query, { credentials: "omit", cache: "no-store", redirect: "follow" });
+          const text = await res.text();
+          return JSON.parse(text);
+        } catch (getErr) {
+          throw new Error("การเชื่อมต่อขัดข้อง กรุณาลองกดทำรายการใหม่อีกครั้ง");
+        }
       }
     }
 
@@ -1052,13 +1072,13 @@
       }
 
       const filtered = allMembers.filter(m => {
-        const name = (m.fullName || "").toLowerCase();
-        const lineName = (m.lineDisplayName || "").toLowerCase();
-        const phone = (m.phone || "").replace(/\D/g, "");
-        const idCard = (m.idCard || "").replace(/\D/g, "");
-        const code = (m.memberCode || "").toLowerCase();
-        const branch = (m.branch || "").toLowerCase();
-        const models = (m.phoneModels || "").toLowerCase();
+        const name = String(m.fullName || "").toLowerCase();
+        const lineName = String(m.lineDisplayName || "").toLowerCase();
+        const phone = String(m.phone || "").replace(/\D/g, "");
+        const idCard = String(m.idCard || "").replace(/\D/g, "");
+        const code = String(m.memberCode || "").toLowerCase();
+        const branch = String(m.branch || "").toLowerCase();
+        const models = String(m.phoneModels || "").toLowerCase();
 
         return name.includes(query) ||
                lineName.includes(query) ||
