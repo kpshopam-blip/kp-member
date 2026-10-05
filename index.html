@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KP Smart Service - ระบบสมาชิก</title>
+  <base target="_top">
+  
+  <!-- Google Fonts: Prompt & Cinzel for Luxury Feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <!-- QR Code & Barcode Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- SweetAlert2 for Elegant Alerts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0c0d0e;
+      --bg-card: #141619;
+      --bg-card-glass: rgba(22, 25, 29, 0.85);
+      --bg-input: #1a1e24;
+      --border-color: #2a2e36;
+      --border-gold: #d4af37;
+      
+      --gold-primary: #d4af37;
+      --gold-light: #f7e7a9;
+      --gold-dark: #997d26;
+      --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f7e7a9 50%, #aa820a 100%);
+      --gold-text-gradient: linear-gradient(135deg, #f7e7a9 0%, #d4af37 60%, #a47d1a 100%);
+      
+      --text-main: #f1f3f5;
+      --text-muted: #8e95a5;
+      --text-gold: #e5c365;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-gold: 0 8px 32px rgba(212, 175, 55, 0.18);
+      --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 65%),
+        radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.04) 0%, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 16px 12px 40px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Common Card & Glassmorphism */
+    .glass-card {
+      background: var(--bg-card-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      padding: 24px 20px;
+      margin-bottom: 20px;
+    }
+
+    /* Brand Header */
+    .brand-header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .brand-logo-wrap {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      background: #000;
+      border: 2px solid var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-logo-fallback {
+      font-family: 'Cinzel', serif;
+      font-size: 32px;
+      font-weight: 900;
+      background: var(--gold-text-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      background: var(--gold-text-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    /* Loading Screen */
+    #loadingScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 70vh;
+      text-align: center;
+    }
+
+    .gold-spinner {
+      width: 54px;
+      height: 54px;
+      border: 3px solid rgba(212, 175, 55, 0.2);
+      border-top-color: var(--gold-primary);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gold-light);
+      margin-bottom: 7px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-label .required {
+      color: #ff6b6b;
+      margin-left: 3px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--gold-primary);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 12px 14px 12px 42px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+      background: #1e222a;
+    }
+
+    .form-control::placeholder {
+      color: #555d6e;
+    }
+
+    .form-control[readonly] {
+      background: #13161c;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      border-color: #222630;
+    }
+
+    /* Segment / Radio Pill Buttons */
+    .radio-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .radio-card {
+      position: relative;
+    }
+
+    .radio-card input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .radio-content {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px 4px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .radio-card input:checked + .radio-content {
+      border-color: var(--gold-primary);
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold-light);
+      font-weight: 600;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    }
+
+    /* Branch Selection */
+    .branch-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    /* Multi-Phone Models Tag Input */
+    .tags-container {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      min-height: 48px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .tags-container:focus-within {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+    }
+
+    .tag-chip {
+      background: rgba(212, 175, 55, 0.2);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      color: var(--gold-light);
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .tag-chip .remove-tag {
+      cursor: pointer;
+      color: #ff8e8e;
+      font-size: 11px;
+    }
+
+    .tag-input {
+      flex: 1;
+      min-width: 130px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-size: 13px;
+      padding: 4px;
+    }
+
+    .tag-input::placeholder {
+      color: #656d7e;
+    }
+
+    .add-tag-btn {
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-light);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-tag-btn:hover {
+      background: var(--gold-primary);
+      color: #000;
+    }
+
+    /* Checkbox Custom */
+    .checkbox-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrapper input {
+      accent-color: var(--gold-primary);
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+
+    .checkbox-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .checkbox-text b {
+      color: var(--gold-light);
+    }
+
+    /* Buttons */
+    .btn-gold {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--gold-gradient);
+      color: #0f1115;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-transform: uppercase;
+      margin-top: 20px;
+    }
+
+    .btn-gold:hover {
+      box-shadow: 0 6px 22px rgba(212, 175, 55, 0.55);
+      transform: translateY(-2px);
+    }
+
+    .btn-gold:active {
+      transform: translateY(1px);
+    }
+
+    .btn-gold:disabled {
+      background: #444a56;
+      color: #88909f;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-outline-gold {
+      background: transparent;
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-light);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-outline-gold:hover {
+      background: rgba(212, 175, 55, 0.15);
+    }
+
+    /* Member Card Design (Luxury Virtual Card) */
+    .member-card-wrapper {
+      perspective: 1000px;
+      margin-bottom: 24px;
+    }
+
+    .member-card {
+      background: linear-gradient(145deg, #17191d 0%, #0d0f12 100%);
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 0 25px rgba(212, 175, 55, 0.18);
+    }
+
+    /* Card Metallic Pattern / Sheen */
+    .member-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-logo-mini {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #000;
+      border: 1px solid var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--gold-primary);
+    }
+
+    .card-brand-text h4 {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      background: var(--gold-text-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .card-brand-text p {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .card-tier-badge {
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-light);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    }
+
+    .card-middle {
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-member-id {
+      font-family: 'Cinzel', monospace;
+      font-size: 21px;
+      letter-spacing: 3px;
+      color: #fff;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      margin-bottom: 4px;
+    }
+
+    .card-member-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gold-light);
+    }
+
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+    }
+
+    .card-stat-item p {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-stat-item h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .card-stat-item h3 span {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--gold-primary);
+      margin-left: 2px;
+    }
+
+    /* Barcode & QR Code Section */
+    .code-toggle-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .code-toggle-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .code-toggle-btn.active {
+      background: var(--gold-primary);
+      color: #000;
+      font-weight: 600;
+      border-color: var(--gold-primary);
+    }
+
+    .code-display-area {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      margin-bottom: 20px;
+    }
+
+    #barcodeCanvas {
+      max-width: 100%;
+      height: 60px;
+    }
+
+    #qrcodeContainer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .code-hint {
+      font-size: 11px;
+      color: #555;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    /* Dashboard Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(212, 175, 55, 0.12);
+      color: var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .stat-info p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .stat-info h4 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Privileges / Coupons List */
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gold-light);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .coupon-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--gold-primary);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .coupon-left h5 {
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .coupon-left p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .coupon-badge {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold-light);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--gold-primary);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .modal-header h3 {
+      font-size: 17px;
+      color: var(--gold-light);
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* Toast / Alert Helper */
+    .alert-banner {
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--gold-light);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Utilities */
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+    .text-gold { color: var(--gold-primary); }
+    .text-muted { color: var(--text-muted); }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 14px; }
+    .mb-3 { margin-bottom: 14px; }
+    .d-flex { display: flex; }
+    .gap-2 { gap: 8px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- 1. หน้าโหลด / สแปลช (Loading State) -->
+    <div id="loadingScreen">
+      <div class="brand-logo-wrap">
+        <span class="brand-logo-fallback">KP</span>
+      </div>
+      <div class="gold-spinner"></div>
+      <h3 style="font-family:'Cinzel', serif; font-size: 16px; letter-spacing: 1px; color: var(--gold-light);">KP SMART SERVICE</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 6px;" id="loadingStatusText">กำลังเชื่อมต่อ LINE และตรวจสอบสมาชิก...</p>
+      <div style="font-size: 11px; color: #666; margin-top: 4px;">v1.3 (Updated)</div>
+      
+      <!-- ปุ่มสำรองกรณีเน็ตช้าหรือ LINE ไม่ตอบสนอง -->
+      <button type="button" onclick="showRegistrationForm()" style="margin-top: 25px; background: rgba(212, 175, 55, 0.15); border: 1px solid rgba(212, 175, 55, 0.4); color: var(--gold-light); font-size: 12px; padding: 6px 14px; border-radius: 20px; cursor: pointer;">
+        <i class="fa-solid fa-arrow-right"></i> ข้ามไปหน้าฟอร์มทันที
+      </button>
+    </div>
+
+    <!-- 2. หน้าสมัครสมาชิก (Registration Screen) -->
+    <div id="registerScreen" class="hidden">
+      
+      <!-- Brand Logo Header -->
+      <div class="brand-header">
+        <div class="brand-logo-wrap">
+          <span class="brand-logo-fallback">KP</span>
+        </div>
+        <h1 class="brand-title">KP SMART SERVICE</h1>
+        <p class="brand-subtitle">ลงทะเบียนเพื่อรับสิทธิพิเศษและสะสมคะแนน</p>
+      </div>
+
+      <!-- Line Profile Badge Preview -->
+      <div class="glass-card" style="padding: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <img id="regLineAvatar" src="" alt="LINE Avatar" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--gold-primary); object-fit: cover; background: #000;">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">บัญชี LINE</div>
+            <div id="regLineDisplayName" style="font-size: 15px; font-weight: 600; color: #fff;">-</div>
+            <div id="regLineStatusSub" style="font-size: 11px; color: #4cd964;"><i class="fa-solid fa-circle-check"></i> ดึงข้อมูลจาก LINE อัตโนมัติ</div>
+          </div>
+        </div>
+        <button type="button" id="btnManualFetchLine" onclick="manualFetchLineProfile()" style="background: rgba(212, 175, 55, 0.15); border: 1px solid var(--gold-primary); color: var(--gold-light); font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
+          <i class="fa-solid fa-rotate"></i> ดึงข้อมูล LINE
+        </button>
+      </div>
+
+      <!-- Registration Form -->
+      <div class="glass-card">
+        <form id="registrationForm" onsubmit="handleRegistration(event)">
+          
+          <!-- ชื่อ-นามสกุล -->
+          <div class="form-group">
+            <label class="form-label">ชื่อ - นามสกุล <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-user input-icon"></i>
+              <input type="text" id="regFullName" class="form-control" placeholder="เช่น นายสมชาย ใจดี" required>
+            </div>
+          </div>
+
+          <!-- เพศ -->
+          <div class="form-group">
+            <label class="form-label">เพศ <span class="required">*</span></label>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="gender" value="ชาย" checked>
+                <div class="radio-content"><i class="fa-solid fa-mars"></i> ชาย</div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="gender" value="หญิง">
+                <div class="radio-content"><i class="fa-solid fa-venus"></i> หญิง</div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="gender" value="อื่นๆ">
+                <div class="radio-content"><i class="fa-solid fa-genderless"></i> อื่นๆ</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- เลขบัตรประชาชน -->
+          <div class="form-group">
+            <label class="form-label">เลขบัตรประชาชน (13 หลัก) <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-card input-icon"></i>
+              <input type="tel" id="regIdCard" class="form-control" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" required oninput="formatIdCardInput(this)">
+            </div>
+          </div>
+
+          <!-- วันเกิด และ อายุ -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label">วันเกิด <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-calendar-day input-icon"></i>
+                <input type="date" id="regBirthDate" class="form-control" required onchange="calculateLiveAge(this.value)">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">อายุ</label>
+              <div class="input-wrapper">
+                <input type="text" id="regAgeDisplay" class="form-control" style="padding-left: 14px; text-align: center; font-weight: 600;" placeholder="0 ปี" readonly>
+              </div>
+            </div>
+          </div>
+
+          <!-- เบอร์โทรศัพท์มือถือ -->
+          <div class="form-group">
+            <label class="form-label">เบอร์โทรศัพท์มือถือ <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-phone input-icon"></i>
+              <input type="tel" id="regPhone" class="form-control" placeholder="08X-XXX-XXXX" maxlength="12" required oninput="formatPhoneInput(this)">
+            </div>
+          </div>
+
+          <!-- อีเมลไลน์ / อีเมล -->
+          <div class="form-group">
+            <label class="form-label">อีเมล <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">(ดึงจาก LINE ให้อัตโนมัติ หรือพิมพ์เองได้)</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-envelope input-icon"></i>
+              <input type="email" id="regEmail" class="form-control" placeholder="example@email.com">
+            </div>
+          </div>
+
+          <!-- รุ่นโทรศัพท์ (ได้มากกว่า 1 รุ่น) -->
+          <div class="form-group">
+            <label class="form-label">รุ่นโทรศัพท์ที่ใช้ <span class="required">*</span> <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">(เพิ่มได้มากกว่า 1 รุ่น)</span></label>
+            <div class="tags-container" id="phoneTagsContainer" onclick="focusTagInput()">
+              <input type="text" id="phoneTagInput" class="tag-input" placeholder="พิมพ์ชื่อรุ่น เช่น iPhone 15 Pro แล้วกดเพิ่ม..." onkeydown="handleTagKeydown(event)">
+              <button type="button" class="add-tag-btn" onclick="addPhoneModelTag()"><i class="fa-solid fa-plus"></i> เพิ่ม</button>
+            </div>
+            <div style="font-size: 11px; color: #8e95a5; margin-top: 5px;">* สามารถพิมพ์แล้วกด Enter หรือกดปุ่ม "เพิ่ม" เพื่อใส่หลายเครื่องได้ครับ</div>
+          </div>
+
+          <!-- สาขาที่เข้าใช้บริการ -->
+          <div class="form-group">
+            <label class="form-label">สาขาที่เข้าใช้บริการประจำ <span class="required">*</span></label>
+            <div class="branch-group">
+              <label class="radio-card">
+                <input type="radio" name="branch" value="จอหอ" checked>
+                <div class="radio-content"><i class="fa-solid fa-store"></i> จอหอ</div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="branch" value="ลากูน่า">
+                <div class="radio-content"><i class="fa-solid fa-store"></i> ลากูน่า</div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="branch" value="โคกสวาย">
+                <div class="radio-content"><i class="fa-solid fa-store"></i> โคกสวาย</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- รับข่าวสาร -->
+          <label class="checkbox-wrapper">
+            <input type="checkbox" id="regConsentNews" checked>
+            <div class="checkbox-text">
+              ยินยอมรับข่าวสาร โปรโมชั่นพิเศษ และสิทธิประโยชน์สะสมคะแนนจาก <b>KP smart service</b>
+            </div>
+          </label>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitRegBtn" class="btn-gold">
+            <i class="fa-solid fa-gem"></i> ยืนยันการสมัครสมาชิก
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- 3. หน้าบัตรสมาชิก & แดชบอร์ด (Member Dashboard Screen) -->
+    <div id="memberScreen" class="hidden">
+      
+      <!-- Virtual Member Card -->
+      <div class="member-card-wrapper">
+        <div class="member-card">
+          
+          <div class="card-top">
+            <div class="card-brand">
+              <div class="card-logo-mini">KP</div>
+              <div class="card-brand-text">
+                <h4>KP SMART SERVICE</h4>
+                <p>DIGITAL MEMBERSHIP</p>
+              </div>
+            </div>
+            <div class="card-tier-badge" id="cardTierBadge">KP MEMBER</div>
+          </div>
+
+          <div class="card-middle">
+            <div class="card-member-id" id="cardMemberId">KP-0001</div>
+            <div class="card-member-name" id="cardMemberName">คุณนภสร ทองจันทร์</div>
+          </div>
+
+          <div class="card-bottom">
+            <div class="card-stat-item">
+              <p>คะแนนสะสม</p>
+              <h3><span id="cardPoints">0</span> <span>PTS</span></h3>
+            </div>
+            <div class="card-stat-item" style="text-align: right;">
+              <p>สาขาหลัก</p>
+              <h4 style="font-size: 14px; color: var(--gold-light);" id="cardBranch">จอหอ</h4>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- QR / Barcode Scan for Cashier -->
+      <div class="glass-card" style="padding: 16px;">
+        <div class="code-toggle-wrap">
+          <button type="button" class="code-toggle-btn active" id="btnShowBarcode" onclick="switchCodeView('barcode')">
+            <i class="fa-solid fa-barcode"></i> บาร์โค้ด
+          </button>
+          <button type="button" class="code-toggle-btn" id="btnShowQrcode" onclick="switchCodeView('qrcode')">
+            <i class="fa-solid fa-qrcode"></i> คิวอาร์โค้ด
+          </button>
+        </div>
+
+        <div class="code-display-area">
+          <!-- Barcode Canvas -->
+          <div id="barcodeContainer">
+            <svg id="barcodeCanvas"></svg>
+          </div>
+          <!-- QR Code Canvas -->
+          <div id="qrcodeContainer" class="hidden"></div>
+          <div class="code-hint">ยื่นให้พนักงานสแกนเพื่อสะสมแต้ม หรือรับบริการหน้าร้าน</div>
+        </div>
+      </div>
+
+      <!-- Quick Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-icon"><i class="fa-solid fa-coins"></i></div>
+          <div class="stat-info">
+            <p>คะแนนคงเหลือ</p>
+            <h4 id="dashCurrentPoints">0 คะแนน</h4>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+          <div class="stat-info">
+            <p>ยอดซื้อสะสม</p>
+            <h4 id="dashTotalSpent">฿0</h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privileges & Special Offers -->
+      <div class="glass-card">
+        <div class="section-title">
+          <span><i class="fa-solid fa-gift text-gold"></i> สิทธิพิเศษสำหรับคุณ</span>
+          <span style="font-size: 12px; color: var(--text-muted);">อัปเดตล่าสุด</span>
+        </div>
+
+        <div class="coupon-card">
+          <div class="coupon-left">
+            <h5>ส่วนลดค่าบริการ 10%</h5>
+            <p>ใช้ได้ทุกสาขา (จอหอ, ลากูน่า, โคกสวาย)</p>
+          </div>
+          <div class="coupon-badge">สมาชิก KP</div>
+        </div>
+
+        <div class="coupon-card">
+          <div class="coupon-left">
+            <h5>ตรวจเช็คเครื่องฟรี 10 รายการ</h5>
+            <p>สิทธิพิเศษตรวจสภาพสมาร์ตโฟน</p>
+          </div>
+          <div class="coupon-badge">สิทธิ์ฟรี</div>
+        </div>
+
+        <div class="coupon-card">
+          <div class="coupon-left">
+            <h5>สะสมคะแนนแลกของรางวัล</h5>
+            <p>ทุกยอดซื้อ 50 บาท รับ 1 คะแนน</p>
+          </div>
+          <div class="coupon-badge">สะสมแต้ม</div>
+        </div>
+      </div>
+
+      <!-- User Profile & Edit Action -->
+      <div class="glass-card">
+        <div class="section-title">
+          <span><i class="fa-solid fa-address-card text-gold"></i> ข้อมูลสมาชิกของฉัน</span>
+          <button type="button" class="btn-outline-gold" onclick="openEditProfileModal()">
+            <i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูล
+          </button>
+        </div>
+
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+          <div><b class="text-gold">เบอร์โทรศัพท์:</b> <span id="dashPhone">-</span></div>
+          <div><b class="text-gold">อีเมล:</b> <span id="dashEmail">-</span></div>
+          <div><b class="text-gold">รุ่นโทรศัพท์:</b> <span id="dashModels">-</span></div>
+          <div><b class="text-gold">วันที่สมัคร:</b> <span id="dashRegDate">-</span></div>
+        </div>
+      </div>
+
+      <!-- Footer Action -->
+      <div class="text-center mt-3">
+        <p style="font-size: 12px; color: var(--text-muted);">KP Smart Service ยินดีให้บริการ</p>
+        <button type="button" class="btn-outline-gold mt-2" onclick="refreshMemberData()">
+          <i class="fa-solid fa-rotate"></i> อัปเดตข้อมูลคะแนนล่าสุด
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Modal สำหรับแก้ไขข้อมูลส่วนตัว -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen text-gold"></i> แก้ไขข้อมูลส่วนตัว</h3>
+        <button type="button" class="modal-close" onclick="closeEditProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="editProfileForm" onsubmit="handleUpdateProfile(event)">
+        
+        <div class="form-group">
+          <label class="form-label">ชื่อ - นามสกุล</label>
+          <input type="text" id="editFullName" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">เบอร์โทรศัพท์</label>
+          <input type="tel" id="editPhone" class="form-control" maxlength="12" required oninput="formatPhoneInput(this)">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">อีเมล</label>
+          <input type="email" id="editEmail" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">รุ่นโทรศัพท์ที่ใช้ (คั่นด้วยเครื่องหมายจุลภาค)</label>
+          <input type="text" id="editPhoneModels" class="form-control" placeholder="เช่น iPhone 15, iPad Pro">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">สาขาที่เข้าใช้บริการประจำ</label>
+          <select id="editBranch" class="form-control" style="padding-left: 14px;">
+            <option value="จอหอ">จอหอ</option>
+            <option value="ลากูน่า">ลากูน่า</option>
+            <option value="โคกสวาย">โคกสวาย</option>
+          </select>
+        </div>
+
+        <button type="submit" id="saveEditBtn" class="btn-gold">
+          <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // ----------------------------------------------------
+    // ตั้งค่า LIFF ID & Google Apps Script API URL
+    // ----------------------------------------------------
+    const LIFF_ID = "2011871586-WPuXnmuL"; 
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbiyleQxDC07di7tFWKlblm0pFYF77nZe3SmS9YjtzAzYR81zzc5j0LHobDGV_K-zMfX8mA/exec";
+
+    // ข้อมูลจำลองสำหรับทดสอบบน Browser ปกติ (ถ้าเปิดนอก LINE)
+    const MOCK_LINE_USER = {
+      userId: "U_TEST_" + Math.floor(100000 + Math.random() * 900000),
+      displayName: "KP Tester",
+      pictureUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      email: "kptest@gmail.com"
+    };
+
+    let currentLineProfile = null;
+    let currentMemberData = null;
+    let phoneModelsList = [];
+    let isMockMode = false;
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initApp();
+    });
+
+    async function initApp() {
+      showLoading("กำลังเชื่อมต่อ LINE...");
+      const targetLiffId = String(LIFF_ID || "").replace(/https?:\/\/liff\.line\.me\//i, "").replace(/\//g, "").trim();
+
+      try {
+        if (typeof liff === "undefined" || !targetLiffId) {
+          throw new Error("LINE SDK ไม่พร้อมใช้งาน");
+        }
+
+        await liff.init({ liffId: targetLiffId });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+
+        let emailFromToken = "";
+        try {
+          const idToken = liff.getDecodedIDToken();
+          if (idToken && idToken.email) emailFromToken = idToken.email;
+        } catch (e) {}
+
+        currentLineProfile = {
+          userId: profile.userId,
+          displayName: profile.displayName,
+          pictureUrl: profile.pictureUrl || "",
+          email: emailFromToken
+        };
+
+        applyLineProfileData(currentLineProfile);
+        checkMemberWithServer(profile.userId);
+
+      } catch (err) {
+        console.error("LIFF Init Error:", err);
+        enableMockMode();
+      }
+    }
+
+    function enableMockMode() {
+      isMockMode = true;
+      currentLineProfile = MOCK_LINE_USER;
+      applyLineProfileData(currentLineProfile);
+      checkMemberWithServer(currentLineProfile.userId);
+    }
+
+    async function checkMemberWithServer(lineUid) {
+      showLoading("กำลังตรวจสอบข้อมูลสมาชิกในระบบ...");
+
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(handleCheckMemberResponse)
+          .withFailureHandler((err) => {
+            console.error("Server Error:", err);
+            showRegistrationForm();
+          })
+          .checkMemberStatus(lineUid);
+        return;
+      }
+
+      try {
+        const url = GAS_API_URL + "?action=checkMember&lineUid=" + encodeURIComponent(lineUid);
+        const res = await fetch(url);
+        const data = await res.json();
+        handleCheckMemberResponse(data);
+      } catch (err) {
+        console.warn("API check failed, showing form:", err);
+        showRegistrationForm();
+      }
+    }
+
+    function handleCheckMemberResponse(res) {
+      if (res && res.success && res.isRegistered && res.member) {
+        currentMemberData = res.member;
+        renderMemberDashboard(res.member);
+      } else {
+        showRegistrationForm();
+      }
+    }
+
+    function showRegistrationForm() {
+      document.getElementById("loadingScreen").classList.add("hidden");
+      document.getElementById("memberScreen").classList.add("hidden");
+      document.getElementById("registerScreen").classList.remove("hidden");
+
+      if (currentLineProfile) {
+        applyLineProfileData(currentLineProfile);
+      }
+    }
+
+    function applyLineProfileData(profileData) {
+      if (!profileData) return;
+      currentLineProfile = profileData;
+
+      const nameEl = document.getElementById("regLineDisplayName");
+      const avatarEl = document.getElementById("regLineAvatar");
+      const emailEl = document.getElementById("regEmail");
+      const statusSub = document.getElementById("regLineStatusSub");
+
+      if (nameEl) nameEl.textContent = profileData.displayName || "LINE User";
+      if (avatarEl) {
+        if (profileData.pictureUrl) {
+          avatarEl.src = profileData.pictureUrl;
+        } else {
+          avatarEl.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(profileData.displayName || "KP") + "&background=d4af37&color=000";
+        }
+      }
+      if (emailEl && profileData.email && !emailEl.value) {
+        emailEl.value = profileData.email;
+      }
+      if (statusSub) {
+        statusSub.innerHTML = '<i class="fa-solid fa-circle-check"></i> ดึงข้อมูลจาก LINE เรียบร้อยแล้ว';
+      }
+    }
+
+    async function manualFetchLineProfile() {
+      const btn = document.getElementById("btnManualFetchLine");
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดึง...';
+
+      try {
+        if (typeof liff === "undefined") throw new Error("LINE SDK ไม่พร้อมใช้งาน");
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        const profile = await liff.getProfile();
+        if (profile) {
+          applyLineProfileData({
+            userId: profile.userId,
+            displayName: profile.displayName,
+            pictureUrl: profile.pictureUrl || "",
+            email: ""
+          });
+          Swal.fire({
+            icon: "success",
+            title: "ดึงข้อมูลสำเร็จ!",
+            text: "สวัสดีคุณ " + profile.displayName,
+            confirmButtonColor: "#d4af37",
+            timer: 2000
+          });
+        }
+      } catch (e) {
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: e.message || e.toString(), confirmButtonColor: "#d4af37" });
+      } finally {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate"></i> ดึงข้อมูล LINE';
+      }
+    }
+
+    function renderMemberDashboard(member) {
+      document.getElementById("loadingScreen").classList.add("hidden");
+      document.getElementById("registerScreen").classList.add("hidden");
+      document.getElementById("memberScreen").classList.remove("hidden");
+
+      document.getElementById("cardMemberId").textContent = member.memberCode || ("KP-" + String(member.id).padStart(4, '0'));
+      document.getElementById("cardMemberName").textContent = member.fullName || member.lineDisplayName;
+      document.getElementById("cardTierBadge").textContent = member.tier || "KP MEMBER";
+      document.getElementById("cardPoints").textContent = Number(member.points || 0).toLocaleString();
+      document.getElementById("cardBranch").textContent = member.branch || "จอหอ";
+
+      document.getElementById("dashCurrentPoints").textContent = Number(member.points || 0).toLocaleString() + " คะแนน";
+      document.getElementById("dashTotalSpent").textContent = "฿" + Number(member.totalSpent || 0).toLocaleString();
+      
+      document.getElementById("dashPhone").textContent = member.phone || "-";
+      document.getElementById("dashEmail").textContent = member.customEmail || member.lineEmail || "-";
+      document.getElementById("dashModels").textContent = member.phoneModels || "-";
+      document.getElementById("dashRegDate").textContent = member.registerDate || "-";
+
+      generateCodes(member.lineUid || member.memberCode);
+    }
+
+    function generateCodes(codeText) {
+      if (!codeText) return;
+      try {
+        JsBarcode("#barcodeCanvas", codeText, {
+          format: "CODE128",
+          lineColor: "#000000",
+          width: 2,
+          height: 60,
+          displayValue: true,
+          fontSize: 13,
+          font: "Prompt"
+        });
+      } catch (e) {
+        console.error("Barcode Error:", e);
+      }
+
+      const qrcodeContainer = document.getElementById("qrcodeContainer");
+      qrcodeContainer.innerHTML = "";
+      try {
+        new QRCode(qrcodeContainer, {
+          text: codeText,
+          width: 150,
+          height: 150,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } catch (e) {
+        console.error("QR Code Error:", e);
+      }
+    }
+
+    function switchCodeView(type) {
+      const btnBarcode = document.getElementById("btnShowBarcode");
+      const btnQrcode = document.getElementById("btnShowQrcode");
+      const barcodeBox = document.getElementById("barcodeContainer");
+      const qrcodeBox = document.getElementById("qrcodeContainer");
+
+      if (type === "barcode") {
+        btnBarcode.classList.add("active");
+        btnQrcode.classList.remove("active");
+        barcodeBox.classList.remove("hidden");
+        qrcodeBox.classList.add("hidden");
+      } else {
+        btnBarcode.classList.remove("active");
+        btnQrcode.classList.add("active");
+        barcodeBox.classList.add("hidden");
+        qrcodeBox.classList.remove("hidden");
+      }
+    }
+
+    function calculateLiveAge(birthDateValue) {
+      if (!birthDateValue) {
+        document.getElementById("regAgeDisplay").value = "";
+        return;
+      }
+      const birthDate = new Date(birthDateValue);
+      if (isNaN(birthDate.getTime())) return;
+
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+      if (age < 0) age = 0;
+
+      document.getElementById("regAgeDisplay").value = age + " ปี";
+    }
+
+    function formatIdCardInput(input) {
+      let val = input.value.replace(/\D/g, "");
+      if (val.length > 13) val = val.substring(0, 13);
+      
+      let formatted = "";
+      if (val.length > 0) formatted += val.substring(0, 1);
+      if (val.length > 1) formatted += "-" + val.substring(1, 5);
+      if (val.length > 5) formatted += "-" + val.substring(5, 10);
+      if (val.length > 10) formatted += "-" + val.substring(10, 12);
+      if (val.length > 12) formatted += "-" + val.substring(12, 13);
+
+      input.value = formatted;
+    }
+
+    function formatPhoneInput(input) {
+      let val = input.value.replace(/\D/g, "");
+      if (val.length > 10) val = val.substring(0, 10);
+
+      let formatted = "";
+      if (val.length > 0) formatted += val.substring(0, 3);
+      if (val.length > 3) formatted += "-" + val.substring(3, 6);
+      if (val.length > 6) formatted += "-" + val.substring(6, 10);
+
+      input.value = formatted;
+    }
+
+    function focusTagInput() {
+      document.getElementById("phoneTagInput").focus();
+    }
+
+    function handleTagKeydown(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addPhoneModelTag();
+      }
+    }
+
+    function addPhoneModelTag() {
+      const input = document.getElementById("phoneTagInput");
+      const model = input.value.trim();
+      if (!model) return;
+
+      if (!phoneModelsList.includes(model)) {
+        phoneModelsList.push(model);
+        renderPhoneModelTags();
+      }
+      input.value = "";
+      input.focus();
+    }
+
+    function removePhoneModelTag(index) {
+      phoneModelsList.splice(index, 1);
+      renderPhoneModelTags();
+    }
+
+    function renderPhoneModelTags() {
+      const container = document.getElementById("phoneTagsContainer");
+      const input = document.getElementById("phoneTagInput");
+
+      const existingChips = container.querySelectorAll(".tag-chip");
+      existingChips.forEach(chip => chip.remove());
+
+      phoneModelsList.forEach((model, idx) => {
+        const chip = document.createElement("div");
+        chip.className = "tag-chip";
+        chip.innerHTML = '<span>' + model + '</span>' +
+          '<i class="fa-solid fa-xmark remove-tag" onclick="removePhoneModelTag(' + idx + '); event.stopPropagation();"></i>';
+        container.insertBefore(chip, input);
+      });
+    }
+
+    async function handleRegistration(e) {
+      e.preventDefault();
+
+      const fullName = document.getElementById("regFullName").value.trim();
+      const gender = document.querySelector('input[name="gender"]:checked').value;
+      const rawIdCard = document.getElementById("regIdCard").value.replace(/\D/g, "");
+      const birthDate = document.getElementById("regBirthDate").value;
+      const rawPhone = document.getElementById("regPhone").value.replace(/\D/g, "");
+      const email = document.getElementById("regEmail").value.trim();
+      const branch = document.querySelector('input[name="branch"]:checked').value;
+      const consentNews = document.getElementById("regConsentNews").checked;
+
+      if (rawIdCard.length !== 13) {
+        Swal.fire({ icon: "warning", title: "ข้อมูลไม่ครบถ้วน", text: "กรุณากรอกเลขบัตรประชาชนให้ครบ 13 หลัก", confirmButtonColor: "#d4af37" });
+        return;
+      }
+
+      if (rawPhone.length !== 10) {
+        Swal.fire({ icon: "warning", title: "เบอร์โทรไม่ถูกต้อง", text: "กรุณากรอกเบอร์โทรศัพท์ 10 หลัก", confirmButtonColor: "#d4af37" });
+        return;
+      }
+
+      let modelsString = phoneModelsList.join(", ");
+      const tempInputModel = document.getElementById("phoneTagInput").value.trim();
+      if (tempInputModel && !phoneModelsList.includes(tempInputModel)) {
+        phoneModelsList.push(tempInputModel);
+        modelsString = phoneModelsList.join(", ");
+      }
+
+      if (!modelsString) {
+        Swal.fire({ icon: "warning", title: "กรุณาระบุรุ่นโทรศัพท์", text: "โปรดระบุรุ่นโทรศัพท์อย่างน้อย 1 รุ่น", confirmButtonColor: "#d4af37" });
+        return;
+      }
+
+      let birthDateFormatted = "";
+      if (birthDate) {
+        const p = birthDate.split("-");
+        birthDateFormatted = p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      const submitBtn = document.getElementById("submitRegBtn");
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
+
+      const payload = {
+        action: "register",
+        lineUid: currentLineProfile ? currentLineProfile.userId : "MOCK_UID_" + Date.now(),
+        lineDisplayName: currentLineProfile ? currentLineProfile.displayName : "KP User",
+        avatarUrl: currentLineProfile ? currentLineProfile.pictureUrl : "",
+        lineEmail: currentLineProfile ? currentLineProfile.email : "",
+        fullName: fullName,
+        gender: gender,
+        idCard: rawIdCard,
+        birthDate: birthDate,
+        birthDateFormatted: birthDateFormatted,
+        phone: rawPhone,
+        customEmail: email,
+        phoneModels: modelsString,
+        branch: branch,
+        consentNews: consentNews
+      };
+
+      try {
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => onRegisterSuccess(res, submitBtn))
+            .withFailureHandler((err) => onRegisterError(err, submitBtn))
+            .registerMember(payload);
+          return;
+        }
+
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        onRegisterSuccess(result, submitBtn);
+
+      } catch (err) {
+        onRegisterError(err, submitBtn);
+      }
+    }
+
+    function onRegisterSuccess(res, submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-gem"></i> ยืนยันการสมัครสมาชิก';
+
+      if (res && res.success) {
+        Swal.fire({
+          icon: "success",
+          title: "ยินดีต้อนรับสู่ KP Smart Service!",
+          text: "ท่านเป็นสมาชิกเรียบร้อยแล้ว รับสิทธิพิเศษและสะสมแต้มได้ทันที",
+          confirmButtonColor: "#d4af37"
+        }).then(() => {
+          currentMemberData = res.member;
+          renderMemberDashboard(res.member);
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "ไม่สำเร็จ",
+          text: res.message || "เกิดข้อผิดพลาดในการลงทะเบียน",
+          confirmButtonColor: "#d4af37"
+        });
+      }
+    }
+
+    function onRegisterError(err, submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-gem"></i> ยืนยันการสมัครสมาชิก';
+      Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+    }
+
+    function openEditProfileModal() {
+      if (!currentMemberData) return;
+      document.getElementById("editFullName").value = currentMemberData.fullName || "";
+      document.getElementById("editPhone").value = currentMemberData.phone || "";
+      document.getElementById("editEmail").value = currentMemberData.customEmail || currentMemberData.lineEmail || "";
+      document.getElementById("editPhoneModels").value = currentMemberData.phoneModels || "";
+      document.getElementById("editBranch").value = currentMemberData.branch || "จอหอ";
+
+      document.getElementById("editModal").classList.add("active");
+    }
+
+    function closeEditProfileModal() {
+      document.getElementById("editModal").classList.remove("active");
+    }
+
+    async function handleUpdateProfile(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById("saveEditBtn");
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
+
+      const payload = {
+        action: "update",
+        lineUid: currentMemberData.lineUid,
+        fullName: document.getElementById("editFullName").value.trim(),
+        phone: document.getElementById("editPhone").value.replace(/\D/g, ""),
+        customEmail: document.getElementById("editEmail").value.trim(),
+        phoneModels: document.getElementById("editPhoneModels").value.trim(),
+        branch: document.getElementById("editBranch").value
+      };
+
+      try {
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => onUpdateSuccess(res, saveBtn))
+            .withFailureHandler((err) => onUpdateError(err, saveBtn))
+            .updateMemberProfile(payload);
+          return;
+        }
+
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        onUpdateSuccess(result, saveBtn);
+
+      } catch (err) {
+        onUpdateError(err, saveBtn);
+      }
+    }
+
+    function onUpdateSuccess(res, saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล';
+      closeEditProfileModal();
+
+      if (res && res.success) {
+        Swal.fire({ icon: "success", title: "อัปเดตข้อมูลสำเร็จ", confirmButtonColor: "#d4af37" });
+        currentMemberData = res.member;
+        renderMemberDashboard(res.member);
+      }
+    }
+
+    function onUpdateError(err, saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล';
+      Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+    }
+
+    function refreshMemberData() {
+      if (currentLineProfile) {
+        checkMemberWithServer(currentLineProfile.userId);
+      }
+    }
+
+    function showLoading(msg) {
+      document.getElementById("loadingStatusText").textContent = msg;
+      document.getElementById("loadingScreen").classList.remove("hidden");
+      document.getElementById("registerScreen").classList.add("hidden");
+      document.getElementById("memberScreen").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
