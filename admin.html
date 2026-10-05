@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KP Smart Service - แผงควบคุมผู้ดูแลระบบ (Admin Console)</title>
+  
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <!-- SheetJS สำหรับ Export Excel (.xlsx) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0a0a0c;
+      --card-bg: #141418;
+      --card-border: rgba(212, 175, 55, 0.25);
+      --gold: #d4af37;
+      --gold-light: #f5d77f;
+      --gold-gradient: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+      --text-main: #f5f5f7;
+      --text-muted: #8e8e93;
+      --danger: #ff453a;
+      --success: #30d158;
+      --info: #0a84ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Prompt', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    .admin-navbar {
+      background: rgba(20, 20, 24, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-nav:hover {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* Main Container */
+    .admin-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
+    }
+
+    /* Login Box (for Pin) */
+    .auth-box {
+      max-width: 400px;
+      margin: 60px auto;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Tabs */
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .tab-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* Overview Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .stat-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .stat-text h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Search & Action Bar */
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+    .search-input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 14px 10px 40px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+    }
+
+    .btn-gold {
+      background: var(--gold-gradient);
+      color: #000;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+    .btn-gold:hover {
+      opacity: 0.9;
+    }
+
+    .btn-excel {
+      background: #107c41;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-excel:hover {
+      background: #0b5a2f;
+    }
+
+    /* Member Table / List */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow-x: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: rgba(255,255,255,0.03);
+      padding: 14px 16px;
+      color: var(--gold);
+      font-weight: 500;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--text-main);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-gold {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .badge-branch {
+      background: rgba(14, 132, 255, 0.15);
+      color: var(--info);
+      border: 1px solid rgba(14, 132, 255, 0.3);
+    }
+
+    .btn-action {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(212, 175, 55, 0.1);
+    }
+    .btn-action.point {
+      border-color: rgba(212, 175, 55, 0.4);
+      color: var(--gold);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-header h3 {
+      font-size: 16px;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      background: #1e1e24;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--gold);
+    }
+
+    .point-preview-box {
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px dashed var(--gold);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .point-preview-box span {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Cards Grid for Privileges */
+    .priv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .priv-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div class="admin-navbar">
+    <div class="brand-title">
+      <i class="fa-solid fa-shield-halved"></i> KP Smart Service - Admin Console
+    </div>
+    <div class="nav-actions">
+      <span id="adminNameDisplay" style="font-size: 12px; color: var(--gold);" class="hidden">Admin</span>
+      <a href="index.html" class="btn-nav">
+        <i class="fa-solid fa-id-card"></i> ไปหน้าบัตรลูกค้า
+      </a>
+      <button type="button" class="btn-nav" onclick="refreshAdminData()">
+        <i class="fa-solid fa-rotate"></i> รีเฟรช
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+
+    <!-- Auth PIN Form (กรณีเปิดบนคอมฯ หรือยังไม่ได้ล็อกอิน LINE Admin) -->
+    <div id="authScreen" class="auth-box hidden">
+      <div style="font-size: 40px; color: var(--gold); margin-bottom: 12px;">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h3 style="margin-bottom: 8px;">เข้าสู่ระบบผู้ดูแลระบบ</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        กรุณากรอกรหัส PIN ผู้ดูแลระบบ (ค่าเริ่มต้น: 8888)
+      </p>
+      <div class="form-group">
+        <input type="password" id="inputAdminPin" class="form-control" style="text-align: center; font-size: 20px; letter-spacing: 4px;" placeholder="****" maxlength="8">
+      </div>
+      <button type="button" class="btn-gold" style="width: 100%; justify-content: center;" onclick="verifyPinLogin()">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> ยืนยันรหัสผ่าน
+      </button>
+    </div>
+
+    <!-- Dashboard Content (เมื่อล็อกอินผ่านแล้ว) -->
+    <div id="dashboardScreen" class="hidden">
+
+      <!-- Navigation Tabs -->
+      <div class="admin-tabs">
+        <button type="button" class="tab-btn active" onclick="switchAdminTab('members')">
+          <i class="fa-solid fa-users"></i> สมาชิก & ค้นหาลูกค้า
+        </button>
+        <button type="button" class="tab-btn" onclick="switchAdminTab('privileges')">
+          <i class="fa-solid fa-gift"></i> จัดการสิทธิพิเศษ
+        </button>
+        <button type="button" class="tab-btn" onclick="switchAdminTab('admins')">
+          <i class="fa-solid fa-user-shield"></i> ผู้ดูแลระบบ (Admins)
+        </button>
+        <button type="button" class="tab-btn" onclick="switchAdminTab('settings')">
+          <i class="fa-solid fa-sliders"></i> ตั้งค่าอัตราคะแนน
+        </button>
+        <button type="button" class="tab-btn" onclick="switchAdminTab('logs')">
+          <i class="fa-solid fa-clock-rotate-left"></i> ประวัติการให้แต้ม
+        </button>
+      </div>
+
+      <!-- Overview Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-text">
+            <p>สมาชิกทั้งหมด</p>
+            <h3 id="statTotalMembers">0 คน</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-gem"></i></div>
+          <div class="stat-text">
+            <p>คะแนนสะสมรวม</p>
+            <h3 id="statTotalPoints">0 แต้ม</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-baht-sign"></i></div>
+          <div class="stat-text">
+            <p>ยอดซื้อสะสมรวม</p>
+            <h3 id="statTotalSpent">฿0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+          <div class="stat-text">
+            <p>อัตราคำนวณแต้ม</p>
+            <h3 id="statRatePoint">100 บ./แต้ม</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 1: MEMBERS SEARCH & MANAGEMENT -->
+      <div id="tabMembers" class="tab-content">
+        <div class="action-bar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="memberSearchInput" class="search-input" placeholder="พิมพ์ชื่อ, เบอร์โทร, เลขบัตร 13 หลัก หรือรหัสสมาชิก..." oninput="filterMembers()">
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn-excel" onclick="exportMembersToExcel()">
+              <i class="fa-solid fa-file-excel"></i> ดาวน์โหลดรายงาน Excel (.xlsx)
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัสสมาชิก</th>
+                <th>ชื่อ - นามสกุล</th>
+                <th>เบอร์โทร</th>
+                <th>สาขา</th>
+                <th>คะแนนคงเหลือ</th>
+                <th>ยอดซื้อสะสม</th>
+                <th>รุ่นโทรศัพท์</th>
+                <th>วันที่สมัคร</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="memberTableBody">
+              <tr>
+                <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  <i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูลสมาชิก...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 2: PRIVILEGES MANAGEMENT -->
+      <div id="tabPrivileges" class="tab-content hidden">
+        <div class="action-bar">
+          <h4 style="color: var(--gold); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-gift"></i> สิทธิพิเศษและโปรโมชั่นทั้งหมด (แสดงบนหน้าบัตรลูกค้า)
+          </h4>
+          <button type="button" class="btn-gold" onclick="openAddPrivilegeModal()">
+            <i class="fa-solid fa-plus"></i> เพิ่มสิทธิพิเศษใหม่
+          </button>
+        </div>
+
+        <div id="privilegesGrid" class="priv-grid">
+          <!-- Render via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 3: ADMINS MANAGEMENT -->
+      <div id="tabAdmins" class="tab-content hidden">
+        <div class="action-bar">
+          <h4 style="color: var(--gold);"><i class="fa-solid fa-user-shield"></i> รายชื่อผู้ดูแลระบบ (Admin)</h4>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          ผู้ที่มีรายชื่อในหน้านี้ จะสามารถเข้าถึงระบบหลังบ้าน จัดการคะแนน และแก้ไขข้อมูลลูกค้าได้ทั้งหมด (ท่านสามารถกดแต่งตั้งสมาชิกจากตารางลูกค้าได้ทันที)
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Line UID</th>
+                <th>ชื่อผู้ดูแลระบบ</th>
+                <th>เบอร์โทร</th>
+                <th>วันที่แต่งตั้ง</th>
+                <th>สถานะ</th>
+                <th>การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody">
+              <!-- Render via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 4: SETTINGS (RATE POINTS & PIN) -->
+      <div id="tabSettings" class="tab-content hidden">
+        <div style="max-width: 500px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 24px;">
+          <h4 style="color: var(--gold); margin-bottom: 16px;">
+            <i class="fa-solid fa-sliders"></i> ตั้งค่าระบบและอัตราคะแนนสะสม
+          </h4>
+
+          <div class="form-group">
+            <label class="form-label">ยอดซื้อกี่บาท = 1 คะแนน (เช่น 100 หรือ 50 บาท)</label>
+            <input type="number" id="settingRatePerPoint" class="form-control" value="100" min="1">
+            <small style="color: var(--text-muted); font-size: 11px;">ระบบจะใช้ค่านี้ในการคำนวณแต้มให้อัตโนมัติเมื่อกรอกยอดซื้อของลูกค้า</small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">รหัส PIN สำรองสำหรับเข้าสู่ระบบหลังบ้าน</label>
+            <input type="text" id="settingAdminPin" class="form-control" value="8888" maxlength="8">
+            <small style="color: var(--text-muted); font-size: 11px;">สำหรับเข้าหลังบ้านกรณีเปิดผ่านคอมพิวเตอร์ทั่วไป</small>
+          </div>
+
+          <button type="button" class="btn-gold" onclick="saveSystemSettings()">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่า
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 5: POINT LOGS -->
+      <div id="tabLogs" class="tab-content hidden">
+        <div class="action-bar">
+          <h4 style="color: var(--gold);"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติการให้และหักคะแนนสะสม (ล่าสุด 50 รายการ)</h4>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่-เวลา</th>
+                <th>รหัสสมาชิก</th>
+                <th>ชื่อลูกค้า</th>
+                <th>ประเภท</th>
+                <th>คะแนน</th>
+                <th>ยอดซื้อ (บาท)</th>
+                <th>หมายเหตุ</th>
+                <th>ผู้ทำรายการ</th>
+              </tr>
+            </thead>
+            <tbody id="logsTableBody">
+              <!-- Render via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL: จัดการคะแนน (Point Adjustment) -->
+  <div class="modal-overlay" id="modalPoints">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-gem text-gold"></i> ให้ / หัก คะแนนสะสม</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modalPoints')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="margin-bottom: 16px; font-size: 13px;">
+        <div><b>ลูกค้า:</b> <span id="pointMemberName" class="text-gold">-</span> (<span id="pointMemberCode">-</span>)</div>
+        <div><b>คะแนนคงเหลือปัจจุบัน:</b> <span id="pointMemberCurrentPoints" style="color: var(--gold); font-weight: 600;">0</span> แต้ม</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ประเภทการทำรายการ</label>
+        <select id="pointAdjustType" class="form-control" onchange="calculateAutoPoints()">
+          <option value="add">➕ เพิ่มคะแนนสะสม (ยอดซื้อสินค้า/บริการ)</option>
+          <option value="sub">➖ หักคะแนน (แลกรับของรางวัล/ส่วนลด)</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="groupSpentAmount">
+        <label class="form-label">ยอดซื้อสินค้า/บริการ (บาท) - คำนวณแต้มให้อัตโนมัติ</label>
+        <input type="number" id="pointSpentAmount" class="form-control" placeholder="เช่น 500" min="0" oninput="calculateAutoPoints()">
+      </div>
+
+      <div class="point-preview-box">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">จำนวนคะแนนที่จะปรับปรุง</div>
+        <span id="previewCalculatedPoints">+0</span> <span style="font-size: 14px; color: var(--gold);">แต้ม</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">หรือระบุจำนวนคะแนนโดยตรง</label>
+        <input type="number" id="pointManualPoints" class="form-control" min="1" placeholder="ระบุแต้มที่ต้องการ">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">หมายเหตุ / รายการซื้อ</label>
+        <input type="text" id="pointNote" class="form-control" placeholder="เช่น ซ่อมหน้าจอ, เปลี่ยนแบต, ซื้อเคส">
+      </div>
+
+      <input type="hidden" id="pointTargetRow">
+      <input type="hidden" id="pointTargetMemberId">
+
+      <button type="button" id="btnSubmitPoints" class="btn-gold" style="width: 100%; justify-content: center;" onclick="submitAdjustPoints()">
+        <i class="fa-solid fa-check"></i> ยืนยันการบันทึกคะแนน
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: แก้ไขข้อมูลลูกค้าโดย Admin -->
+  <div class="modal-overlay" id="modalEditMember">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen text-gold"></i> แก้ไขข้อมูลลูกค้า (Admin)</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modalEditMember')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="formEditMember" onsubmit="submitEditMember(event)">
+        <input type="hidden" id="editRowNumber">
+
+        <div class="form-group">
+          <label class="form-label">ชื่อ - นามสกุล *</label>
+          <input type="text" id="editFullName" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">เบอร์โทรศัพท์ *</label>
+          <input type="tel" id="editPhone" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">เลขบัตรประชาชน 13 หลัก</label>
+          <input type="text" id="editIdCard" class="form-control" maxlength="17">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">วันเกิด</label>
+          <input type="date" id="editBirthDate" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">เพศ</label>
+          <select id="editGender" class="form-control">
+            <option value="ชาย">ชาย</option>
+            <option value="หญิง">หญิง</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">อีเมล</label>
+          <input type="email" id="editCustomEmail" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">รุ่นโทรศัพท์ที่ใช้</label>
+          <input type="text" id="editPhoneModels" class="form-control" placeholder="เช่น iPhone 15, iPad Air">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">สาขาที่ใช้บริการประจำ</label>
+          <select id="editBranch" class="form-control">
+            <option value="จอหอ">จอหอ</option>
+            <option value="ลากูน่า">ลากูน่า</option>
+            <option value="โคกสวาย">โคกสวาย</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">หมายเหตุเพิ่มเติม</label>
+          <input type="text" id="editNote" class="form-control">
+        </div>
+
+        <button type="submit" id="btnSubmitEditMember" class="btn-gold" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลูกค้า
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: จัดการสิทธิพิเศษ (เพิ่ม/แก้ไข) -->
+  <div class="modal-overlay" id="modalPrivilege">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="privModalTitle"><i class="fa-solid fa-gift text-gold"></i> เพิ่มสิทธิพิเศษ</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modalPrivilege')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="formPrivilege" onsubmit="submitPrivilege(event)">
+        <input type="hidden" id="privId">
+
+        <div class="form-group">
+          <label class="form-label">หัวข้อสิทธิพิเศษ / โปรโมชั่น *</label>
+          <input type="text" id="privTitle" class="form-control" required placeholder="เช่น ส่วนลดค่าซ่อม 10%">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">รายละเอียดเงื่อนไข</label>
+          <textarea id="privDesc" class="form-control" rows="3" placeholder="ระบุเงื่อนไขการใช้สิทธิ"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">คะแนนที่ต้องใช้แลก (ใส่ 0 ถ้าเป็นสิทธิ์ฟรีสำหรับสมาชิก)</label>
+          <input type="number" id="privPoints" class="form-control" value="0" min="0">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ป้ายข้อความ (Badge Tag)</label>
+          <input type="text" id="privTag" class="form-control" placeholder="เช่น ฟรีสมาชิก, แลกคะแนน, พิเศษ">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">วันหมดอายุ</label>
+          <input type="text" id="privExpire" class="form-control" value="ตลอดชีพ" placeholder="เช่น 31/12/2026 หรือ ตลอดชีพ">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">สถานะ</label>
+          <select id="privStatus" class="form-control">
+            <option value="เปิดใช้งาน">เปิดใช้งาน</option>
+            <option value="ปิดชั่วคราว">ปิดชั่วคราว</option>
+          </select>
+        </div>
+
+        <button type="submit" id="btnSubmitPriv" class="btn-gold" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-floppy-disk"></i> บันทึกสิทธิพิเศษ
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const LIFF_ID = "2011871586-WPuXnmuL";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyleQxDC07di7tFWKlbIm0pFYF77nZe3SmS9YjtzAzYR81zzc5j0LHobDGV_K-zMfX8mA/exec";
+
+    let currentAdminAuth = {
+      lineUid: "",
+      name: "Admin",
+      pin: ""
+    };
+
+    let allMembers = [];
+    let systemConfig = { ratePerPoint: 100 };
+    let allAdmins = [];
+    let allPrivileges = [];
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initAdminApp();
+    });
+
+    async function initAdminApp() {
+      // 1. ตรวจสอบว่ามี Session Admin ส่งมาจาก index.html หรือไม่
+      const sessionUid = sessionStorage.getItem("KP_ADMIN_LINE_UID");
+      const sessionName = sessionStorage.getItem("KP_ADMIN_NAME");
+
+      if (sessionUid) {
+        currentAdminAuth.lineUid = sessionUid;
+        currentAdminAuth.name = sessionName || "Admin";
+        loadDashboardData();
+        return;
+      }
+
+      // 2. ลองเชื่อมต่อ LINE LIFF ถ้าเปิดบน LINE
+      try {
+        if (typeof liff !== "undefined" && LIFF_ID) {
+          await liff.init({ liffId: LIFF_ID });
+          if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            currentAdminAuth.lineUid = profile.userId;
+            currentAdminAuth.name = profile.displayName || "Admin";
+            loadDashboardData();
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("LIFF Init warning on Admin:", e);
+      }
+
+      // 3. ถ้าไม่มี LINE ให้แสดงกล่องใส่ PIN
+      showAuthScreen();
+    }
+
+    function showAuthScreen() {
+      document.getElementById("authScreen").classList.remove("hidden");
+      document.getElementById("dashboardScreen").classList.add("hidden");
+    }
+
+    function verifyPinLogin() {
+      const pin = document.getElementById("inputAdminPin").value.trim();
+      if (!pin) {
+        Swal.fire({ icon: "warning", title: "กรุณากรอกรหัส PIN", confirmButtonColor: "#d4af37" });
+        return;
+      }
+      currentAdminAuth.pin = pin;
+      loadDashboardData();
+    }
+
+    // ฟังก์ชันยิง API กลาง
+    async function callGasApi(payload) {
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)[payload.action](payload);
+        });
+      }
+
+      const bodyPayload = {
+        ...payload,
+        adminLineUid: currentAdminAuth.lineUid,
+        adminPin: currentAdminAuth.pin,
+        adminName: currentAdminAuth.name
+      };
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(bodyPayload)
+        });
+        return await res.json();
+      } catch (postErr) {
+        console.warn("POST failed, fallback to GET:", postErr);
+        const query = `?action=${encodeURIComponent(payload.action)}&data=${encodeURIComponent(JSON.stringify(bodyPayload))}`;
+        const res = await fetch(GAS_API_URL + query, { redirect: "follow" });
+        return await res.json();
+      }
+    }
+
+    async function loadDashboardData() {
+      Swal.fire({
+        title: "กำลังโหลดข้อมูล...",
+        text: "กรุณารอสักครู่",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      try {
+        const res = await callGasApi({ action: "adminGetDashboard" });
+
+        if (!res || !res.success) {
+          Swal.fire({
+            icon: "error",
+            title: "ไม่สามารถเข้าสู่ระบบได้",
+            text: res.message || "รหัสผ่านไม่ถูกต้อง หรือท่านไม่มีสิทธิ์ผู้ดูแลระบบ",
+            confirmButtonColor: "#d4af37"
+          }).then(() => showAuthScreen());
+          return;
+        }
+
+        Swal.close();
+        document.getElementById("authScreen").classList.add("hidden");
+        document.getElementById("dashboardScreen").classList.remove("hidden");
+
+        const adminNameEl = document.getElementById("adminNameDisplay");
+        adminNameEl.textContent = "👤 " + (currentAdminAuth.name || "Admin");
+        adminNameEl.classList.remove("hidden");
+
+        // นำข้อมูลเข้าสู่ระบบ
+        allMembers = res.members || [];
+        systemConfig = res.config || { ratePerPoint: 100 };
+        allAdmins = res.admins || [];
+        allPrivileges = res.privileges || [];
+
+        renderOverviewStats(res.stats, systemConfig);
+        renderMembersTable(allMembers);
+        renderPrivilegesGrid(allPrivileges);
+        renderAdminsTable(allAdmins);
+        renderSettingsTab(systemConfig);
+        renderLogsTable(res.pointLogs || []);
+
+      } catch (err) {
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+      }
+    }
+
+    function renderOverviewStats(stats, config) {
+      if (!stats) return;
+      document.getElementById("statTotalMembers").textContent = (stats.totalMembers || 0).toLocaleString() + " คน";
+      document.getElementById("statTotalPoints").textContent = (stats.totalPoints || 0).toLocaleString() + " แต้ม";
+      document.getElementById("statTotalSpent").textContent = "฿" + (stats.totalSpent || 0).toLocaleString();
+      document.getElementById("statRatePoint").textContent = (config.ratePerPoint || 100) + " บ./แต้ม";
+    }
+
+    function renderMembersTable(members) {
+      const tbody = document.getElementById("memberTableBody");
+      if (!members || members.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">ไม่พบข้อมูลสมาชิก</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = members.map(m => `
+        <tr>
+          <td><span class="badge badge-gold">${escapeHtml(m.memberCode || ("KP-" + String(m.id).padStart(4, '0')))}</span></td>
+          <td><b>${escapeHtml(m.fullName || m.lineDisplayName)}</b></td>
+          <td>${escapeHtml(m.phone || "-")}</td>
+          <td><span class="badge badge-branch">${escapeHtml(m.branch || "จอหอ")}</span></td>
+          <td><b style="color: var(--gold);">${Number(m.points || 0).toLocaleString()}</b> แต้ม</td>
+          <td>฿${Number(m.totalSpent || 0).toLocaleString()}</td>
+          <td><small>${escapeHtml(m.phoneModels || "-")}</small></td>
+          <td><small>${escapeHtml(m.registerDate || "-")}</small></td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn-action point" onclick="openPointModal(${m.rowNumber})">
+                <i class="fa-solid fa-gem"></i> ให้แต้ม
+              </button>
+              <button type="button" class="btn-action" onclick="openEditMemberModal(${m.rowNumber})">
+                <i class="fa-solid fa-pen"></i> แก้ไข
+              </button>
+              <button type="button" class="btn-action" onclick="toggleAdminRole('${escapeHtml(m.lineUid)}', '${escapeHtml(m.fullName)}', '${escapeHtml(m.phone)}')">
+                <i class="fa-solid fa-user-shield"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterMembers() {
+      const query = document.getElementById("memberSearchInput").value.toLowerCase().trim();
+      if (!query) {
+        renderMembersTable(allMembers);
+        return;
+      }
+
+      const filtered = allMembers.filter(m => {
+        const name = (m.fullName || "").toLowerCase();
+        const lineName = (m.lineDisplayName || "").toLowerCase();
+        const phone = (m.phone || "").replace(/\D/g, "");
+        const idCard = (m.idCard || "").replace(/\D/g, "");
+        const code = (m.memberCode || "").toLowerCase();
+        const branch = (m.branch || "").toLowerCase();
+        const models = (m.phoneModels || "").toLowerCase();
+
+        return name.includes(query) ||
+               lineName.includes(query) ||
+               phone.includes(query) ||
+               idCard.includes(query) ||
+               code.includes(query) ||
+               branch.includes(query) ||
+               models.includes(query);
+      });
+
+      renderMembersTable(filtered);
+    }
+
+    // ====================================================
+    // POINT ADJUSTMENT (ให้คะแนน / หักคะแนน)
+    // ====================================================
+    function openPointModal(rowNumber) {
+      const member = allMembers.find(m => m.rowNumber === rowNumber);
+      if (!member) return;
+
+      document.getElementById("pointTargetRow").value = rowNumber;
+      document.getElementById("pointTargetMemberId").value = member.id;
+      document.getElementById("pointMemberName").textContent = member.fullName || member.lineDisplayName;
+      document.getElementById("pointMemberCode").textContent = member.memberCode;
+      document.getElementById("pointMemberCurrentPoints").textContent = Number(member.points || 0).toLocaleString();
+
+      document.getElementById("pointSpentAmount").value = "";
+      document.getElementById("pointManualPoints").value = "";
+      document.getElementById("pointNote").value = "";
+      document.getElementById("pointAdjustType").value = "add";
+
+      calculateAutoPoints();
+      openModal("modalPoints");
+    }
+
+    function calculateAutoPoints() {
+      const type = document.getElementById("pointAdjustType").value;
+      const spent = Number(document.getElementById("pointSpentAmount").value) || 0;
+      const rate = systemConfig.ratePerPoint || 100;
+      const manual = Number(document.getElementById("pointManualPoints").value);
+
+      let calc = 0;
+      if (manual && manual > 0) {
+        calc = manual;
+      } else if (spent > 0) {
+        calc = Math.floor(spent / rate);
+      }
+
+      const previewEl = document.getElementById("previewCalculatedPoints");
+      previewEl.textContent = (type === "add" ? "+" : "-") + calc.toLocaleString();
+      previewEl.style.color = (type === "add" ? "var(--gold)" : "var(--danger)");
+    }
+
+    document.getElementById("pointManualPoints").addEventListener("input", calculateAutoPoints);
+
+    async function submitAdjustPoints() {
+      const rowNumber = document.getElementById("pointTargetRow").value;
+      const type = document.getElementById("pointAdjustType").value;
+      const spent = Number(document.getElementById("pointSpentAmount").value) || 0;
+      const manual = Number(document.getElementById("pointManualPoints").value);
+      const note = document.getElementById("pointNote").value.trim();
+
+      const rate = systemConfig.ratePerPoint || 100;
+      let points = 0;
+      if (manual && manual > 0) {
+        points = manual;
+      } else if (spent > 0) {
+        points = Math.floor(spent / rate);
+      }
+
+      if (points <= 0) {
+        Swal.fire({ icon: "warning", title: "กรุณาระบุคะแนน หรือยอดซื้อสินค้า", confirmButtonColor: "#d4af37" });
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmitPoints");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
+
+      try {
+        const res = await callGasApi({
+          action: "adminAdjustPoints",
+          rowNumber: rowNumber,
+          type: type,
+          points: points,
+          spentAmount: spent,
+          note: note
+        });
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> ยืนยันการบันทึกคะแนน';
+
+        if (res && res.success) {
+          closeModal("modalPoints");
+          Swal.fire({ icon: "success", title: res.message || "บันทึกคะแนนสำเร็จ", confirmButtonColor: "#d4af37" });
+          loadDashboardData();
+        } else {
+          Swal.fire({ icon: "error", title: "ไม่สำเร็จ", text: res.message || "เกิดข้อผิดพลาด", confirmButtonColor: "#d4af37" });
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> ยืนยันการบันทึกคะแนน';
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: e.toString(), confirmButtonColor: "#d4af37" });
+      }
+    }
+
+    // ====================================================
+    // EDIT MEMBER (Admin แก้ไขข้อมูลลูกค้า)
+    // ====================================================
+    function openEditMemberModal(rowNumber) {
+      const member = allMembers.find(m => m.rowNumber === rowNumber);
+      if (!member) return;
+
+      document.getElementById("editRowNumber").value = rowNumber;
+      document.getElementById("editFullName").value = member.fullName || "";
+      document.getElementById("editPhone").value = member.phone || "";
+      document.getElementById("editIdCard").value = member.idCard || "";
+      document.getElementById("editGender").value = member.gender || "ชาย";
+      document.getElementById("editCustomEmail").value = member.customEmail || member.lineEmail || "";
+      document.getElementById("editPhoneModels").value = member.phoneModels || "";
+      document.getElementById("editBranch").value = member.branch || "จอหอ";
+      document.getElementById("editNote").value = member.note || "";
+
+      openModal("modalEditMember");
+    }
+
+    async function submitEditMember(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btnSubmitEditMember");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
+
+      const payload = {
+        action: "adminUpdateMember",
+        rowNumber: document.getElementById("editRowNumber").value,
+        fullName: document.getElementById("editFullName").value.trim(),
+        phone: document.getElementById("editPhone").value.trim(),
+        idCard: document.getElementById("editIdCard").value.trim(),
+        gender: document.getElementById("editGender").value,
+        birthDate: document.getElementById("editBirthDate").value,
+        customEmail: document.getElementById("editCustomEmail").value.trim(),
+        phoneModels: document.getElementById("editPhoneModels").value.trim(),
+        branch: document.getElementById("editBranch").value,
+        note: document.getElementById("editNote").value.trim()
+      };
+
+      try {
+        const res = await callGasApi(payload);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลูกค้า';
+
+        if (res && res.success) {
+          closeModal("modalEditMember");
+          Swal.fire({ icon: "success", title: "อัปเดตข้อมูลลูกค้าสำเร็จ", confirmButtonColor: "#d4af37" });
+          loadDashboardData();
+        } else {
+          Swal.fire({ icon: "error", title: "ไม่สำเร็จ", text: res.message || "เกิดข้อผิดพลาด", confirmButtonColor: "#d4af37" });
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลูกค้า';
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+      }
+    }
+
+    // ====================================================
+    // PRIVILEGES (จัดการสิทธิพิเศษ)
+    // ====================================================
+    function renderPrivilegesGrid(privileges) {
+      const grid = document.getElementById("privilegesGrid");
+      if (!privileges || privileges.length === 0) {
+        grid.innerHTML = '<p style="color: var(--text-muted);">ยังไม่มีสิทธิพิเศษในระบบ</p>';
+        return;
+      }
+
+      grid.innerHTML = privileges.map(p => `
+        <div class="priv-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <span class="badge badge-gold">${escapeHtml(p.tag || "สิทธิพิเศษ")}</span>
+              <span style="font-size: 11px; color: ${p.status === 'เปิดใช้งาน' ? 'var(--success)' : 'var(--danger)'};">
+                ● ${escapeHtml(p.status)}
+              </span>
+            </div>
+            <h4 style="color: var(--text-main); margin-bottom: 6px;">${escapeHtml(p.title)}</h4>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+              ${escapeHtml(p.description || "-")}
+            </p>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: var(--gold); margin-bottom: 12px;">
+              <i class="fa-solid fa-gem"></i> ใช้ ${p.points > 0 ? p.points + ' คะแนน' : 'ฟรีสำหรับสมาชิก'}
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-action" style="flex: 1;" onclick="editPrivilege('${escapeHtml(p.id)}')">
+                <i class="fa-solid fa-pen"></i> แก้ไข
+              </button>
+              <button type="button" class="btn-action" style="color: var(--danger); border-color: rgba(255,69,58,0.3);" onclick="deletePrivilege('${escapeHtml(p.id)}')">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openAddPrivilegeModal() {
+      document.getElementById("privModalTitle").innerHTML = '<i class="fa-solid fa-plus text-gold"></i> เพิ่มสิทธิพิเศษใหม่';
+      document.getElementById("privId").value = "";
+      document.getElementById("privTitle").value = "";
+      document.getElementById("privDesc").value = "";
+      document.getElementById("privPoints").value = "0";
+      document.getElementById("privTag").value = "สิทธิพิเศษ";
+      document.getElementById("privExpire").value = "ตลอดชีพ";
+      document.getElementById("privStatus").value = "เปิดใช้งาน";
+      openModal("modalPrivilege");
+    }
+
+    function editPrivilege(id) {
+      const p = allPrivileges.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById("privModalTitle").innerHTML = '<i class="fa-solid fa-pen text-gold"></i> แก้ไขสิทธิพิเศษ';
+      document.getElementById("privId").value = p.id;
+      document.getElementById("privTitle").value = p.title || "";
+      document.getElementById("privDesc").value = p.description || "";
+      document.getElementById("privPoints").value = p.points || 0;
+      document.getElementById("privTag").value = p.tag || "สิทธิพิเศษ";
+      document.getElementById("privExpire").value = p.expireDate || "ตลอดชีพ";
+      document.getElementById("privStatus").value = p.status || "เปิดใช้งาน";
+      openModal("modalPrivilege");
+    }
+
+    async function submitPrivilege(e) {
+      e.preventDefault();
+      const payload = {
+        action: "adminSavePrivilege",
+        operation: "save",
+        id: document.getElementById("privId").value,
+        title: document.getElementById("privTitle").value.trim(),
+        description: document.getElementById("privDesc").value.trim(),
+        points: Number(document.getElementById("privPoints").value) || 0,
+        tag: document.getElementById("privTag").value.trim(),
+        expireDate: document.getElementById("privExpire").value.trim(),
+        status: document.getElementById("privStatus").value
+      };
+
+      try {
+        const res = await callGasApi(payload);
+        if (res && res.success) {
+          closeModal("modalPrivilege");
+          Swal.fire({ icon: "success", title: "บันทึกสิทธิพิเศษเรียบร้อยแล้ว", confirmButtonColor: "#d4af37" });
+          allPrivileges = res.privileges || [];
+          renderPrivilegesGrid(allPrivileges);
+        } else {
+          Swal.fire({ icon: "error", title: "ไม่สำเร็จ", text: res.message || "เกิดข้อผิดพลาด", confirmButtonColor: "#d4af37" });
+        }
+      } catch (err) {
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+      }
+    }
+
+    async function deletePrivilege(id) {
+      const result = await Swal.fire({
+        title: "ยืนยันการลบสิทธิพิเศษ?",
+        text: "เมื่อลบแล้ว รายการนี้จะไม่แสดงให้ลูกค้าเห็นอีกต่อไป",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d4af37",
+        cancelButtonColor: "#ff453a",
+        confirmButtonText: "ใช่, ต้องการลบ",
+        cancelButtonText: "ยกเลิก"
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        const res = await callGasApi({
+          action: "adminSavePrivilege",
+          operation: "delete",
+          id: id
+        });
+        if (res && res.success) {
+          Swal.fire({ icon: "success", title: "ลบสำเร็จ", confirmButtonColor: "#d4af37" });
+          allPrivileges = res.privileges || [];
+          renderPrivilegesGrid(allPrivileges);
+        }
+      } catch (err) {
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+      }
+    }
+
+    // ====================================================
+    // ADMINS TAB
+    // ====================================================
+    function renderAdminsTable(admins) {
+      const tbody = document.getElementById("adminTableBody");
+      if (!admins || admins.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">ยังไม่มีรายชื่อผู้ดูแลระบบ</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = admins.map((a, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td><small>${escapeHtml(a.lineUid)}</small></td>
+          <td><b>${escapeHtml(a.name || "-")}</b></td>
+          <td>${escapeHtml(a.phone || "-")}</td>
+          <td><small>${escapeHtml(a.assignedDate || "-")}</small></td>
+          <td><span class="badge ${a.status === 'ใช้งาน' ? 'badge-gold' : ''}">${escapeHtml(a.status)}</span></td>
+          <td>
+            <button type="button" class="btn-action" style="color: var(--danger);" onclick="toggleAdminRole('${escapeHtml(a.lineUid)}', '${escapeHtml(a.name)}', '${escapeHtml(a.phone)}', 'revoke')">
+              <i class="fa-solid fa-user-xmark"></i> ถอดถอน
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function toggleAdminRole(lineUid, name, phone, actionType = "grant") {
+      if (!lineUid) {
+        Swal.fire({ icon: "warning", title: "สมาชิกรายนี้ไม่มี Line UID", confirmButtonColor: "#d4af37" });
+        return;
+      }
+
+      const isGrant = actionType === "grant";
+      const confirmResult = await Swal.fire({
+        title: isGrant ? "แต่งตั้งเป็นผู้ดูแลระบบ?" : "ถอดถอนสิทธิ์ผู้ดูแลระบบ?",
+        text: `คุณต้องการ${isGrant ? 'แต่งตั้ง' : 'ถอดถอน'} ${name} ให้${isGrant ? 'มี' : 'ไม่มี'}สิทธิ์เข้าถึงระบบหลังบ้านใช่หรือไม่?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#d4af37",
+        cancelButtonColor: "#ff453a",
+        confirmButtonText: "ใช่, ยืนยัน",
+        cancelButtonText: "ยกเลิก"
+      });
+
+      if (!confirmResult.isConfirmed) return;
+
+      try {
+        const res = await callGasApi({
+          action: "adminToggleAdmin",
+          targetLineUid: lineUid,
+          name: name,
+          phone: phone,
+          actionType: actionType
+        });
+
+        if (res && res.success) {
+          Swal.fire({ icon: "success", title: res.message || "ดำเนินการสำเร็จ", confirmButtonColor: "#d4af37" });
+          loadDashboardData();
+        } else {
+          Swal.fire({ icon: "error", title: "ไม่สำเร็จ", text: res.message || "เกิดข้อผิดพลาด", confirmButtonColor: "#d4af37" });
+        }
+      } catch (err) {
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+      }
+    }
+
+    // ====================================================
+    // SETTINGS (อัตราคะแนน)
+    // ====================================================
+    function renderSettingsTab(config) {
+      if (!config) return;
+      document.getElementById("settingRatePerPoint").value = config.ratePerPoint || 100;
+      document.getElementById("settingAdminPin").value = config.adminSecretPin || "8888";
+    }
+
+    async function saveSystemSettings() {
+      const rate = Number(document.getElementById("settingRatePerPoint").value);
+      const pin = document.getElementById("settingAdminPin").value.trim();
+
+      if (!rate || rate <= 0) {
+        Swal.fire({ icon: "warning", title: "กรุณาระบุอัตราคะแนนที่มากกว่า 0", confirmButtonColor: "#d4af37" });
+        return;
+      }
+
+      try {
+        const res = await callGasApi({
+          action: "adminSaveSettings",
+          ratePerPoint: rate,
+          adminSecretPin: pin
+        });
+
+        if (res && res.success) {
+          Swal.fire({ icon: "success", title: "บันทึกการตั้งค่าเรียบร้อยแล้ว", confirmButtonColor: "#d4af37" });
+          systemConfig = res.config;
+          document.getElementById("statRatePoint").textContent = systemConfig.ratePerPoint + " บ./แต้ม";
+        }
+      } catch (err) {
+        Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+      }
+    }
+
+    // ====================================================
+    // POINT LOGS
+    // ====================================================
+    function renderLogsTable(logs) {
+      const tbody = document.getElementById("logsTableBody");
+      if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">ยังไม่มีประวัติการทำรายการ</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = logs.map(l => `
+        <tr>
+          <td><small>${escapeHtml(l.timestamp)}</small></td>
+          <td><span class="badge badge-gold">${escapeHtml(l.memberCode)}</span></td>
+          <td><b>${escapeHtml(l.memberName)}</b></td>
+          <td><span style="color: ${l.type === 'เพิ่มคะแนน' ? 'var(--gold)' : 'var(--danger)'};">${escapeHtml(l.type)}</span></td>
+          <td><b>${escapeHtml(String(l.points))}</b> แต้ม</td>
+          <td>${l.spentAmount > 0 ? '฿' + Number(l.spentAmount).toLocaleString() : '-'}</td>
+          <td><small>${escapeHtml(l.note || "-")}</small></td>
+          <td><small>${escapeHtml(l.adminName || "Admin")}</small></td>
+        </tr>
+      `).join('');
+    }
+
+    // ====================================================
+    // EXPORT TO EXCEL (.xlsx)
+    // ====================================================
+    function exportMembersToExcel() {
+      if (!allMembers || allMembers.length === 0) {
+        Swal.fire({ icon: "info", title: "ไม่มีข้อมูลสมาชิกที่จะส่งออก", confirmButtonColor: "#d4af37" });
+        return;
+      }
+
+      // โครงสร้าง 35 คอลัมน์ตามรายงานเดิม
+      const excelHeaders = [
+        "#", "ชื่อ", "สถานะ", "ชื่อจาก LINE", "รหัสไอดีไลน์", "line uid status",
+        "กลุ่มทั่วไป", "กลุ่มตามคะแนนสะสม", "เพศ", "วันเกิด", "อายุ", "ช่วงอายุ",
+        "เบอร์โทรศัพท์มือถือ", "อีเมลไลน์", "อีเมลกำหนดเอง", "ที่อยู่",
+        "วันที่สมัครสมาชิก", "วันหมดอายุสมาชิก", "การใช้งานล่าสุด",
+        "คะแนนคงเหลือ", "คะแนนสะสม", "ยอดซื้อสะสม", "วอลเล็ตคงเหลือ", "ผู้แนะนำ",
+        "หมายเหตุ", "รูปภาพ", "รายการฝาก", "แพ็กเกจพิเศษ", "คูปอง", "Whatsapp",
+        "สาขา", "รับข่าวสาร", "สาขาสำรอง", "รุ่นโทรศัพท์(ได้มากกว่า 1 )", "เลขบัตรประชาชน"
+      ];
+
+      const dataRows = allMembers.map(m => [
+        m.id,
+        m.fullName,
+        m.status || "active",
+        m.lineDisplayName || "",
+        m.lineUid || "",
+        "follow",
+        m.group || "ลูกค้าทั่วไป",
+        m.tier || "KP Member",
+        m.gender || "",
+        m.birthDate || "",
+        m.age || 0,
+        m.ageGroup || "",
+        m.phone || "",
+        m.lineEmail || "",
+        m.customEmail || "",
+        m.address || "",
+        m.registerDate || "",
+        m.expireDate || "ตลอดชีพ",
+        m.lastActive || "",
+        m.points || 0,
+        m.totalPoints || 0,
+        m.totalSpent || 0,
+        m.wallet || 0,
+        m.referrer || "",
+        m.note || "",
+        m.avatarUrl || "",
+        "",
+        "",
+        "",
+        "",
+        m.branch || "จอหอ",
+        m.consentNews ? "ใช่" : "ไม่ใช่",
+        "",
+        m.phoneModels || "",
+        m.idCard || ""
+      ]);
+
+      const wsData = [
+        ["Report", "รายงานข้อมูลลูกค้า"],
+        excelHeaders,
+        ...dataRows
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+      // กำหนดความกว้างคอลัมน์อัตโนมัติ
+      const colWidths = excelHeaders.map((_, i) => ({ wch: 18 }));
+      colWidths[0] = { wch: 6 };
+      colWidths[1] = { wch: 22 };
+      colWidths[4] = { wch: 35 };
+      ws['!cols'] = colWidths;
+
+      XLSX.utils.book_append_sheet(wb, ws, "รายงานข้อมูลลูกค้า");
+
+      const today = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `รายงานข้อมูลลูกค้า_KP_Smart_Service_${today}.xlsx`);
+
+      Swal.fire({
+        icon: "success",
+        title: "ดาวน์โหลดรายงานสำเร็จ!",
+        text: `ดาวน์โหลดข้อมูลลูกค้าจำนวน ${allMembers.length} คน เรียบร้อยแล้ว`,
+        confirmButtonColor: "#d4af37"
+      });
+    }
+
+    // ====================================================
+    // UI HELPERS
+    // ====================================================
+    function switchAdminTab(tabId) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+
+      const activeBtn = Array.from(document.querySelectorAll(".tab-btn")).find(b => b.getAttribute("onclick").includes(tabId));
+      if (activeBtn) activeBtn.classList.add("active");
+
+      if (tabId === 'members') document.getElementById("tabMembers").classList.remove("hidden");
+      if (tabId === 'privileges') document.getElementById("tabPrivileges").classList.remove("hidden");
+      if (tabId === 'admins') document.getElementById("tabAdmins").classList.remove("hidden");
+      if (tabId === 'settings') document.getElementById("tabSettings").classList.remove("hidden");
+      if (tabId === 'logs') document.getElementById("tabLogs").classList.remove("hidden");
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add("active");
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("active");
+    }
+
+    function refreshAdminData() {
+      loadDashboardData();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+  </script>
+</body>
+</html>

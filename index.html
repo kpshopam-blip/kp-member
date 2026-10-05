@@ -1056,38 +1056,39 @@
           <span style="font-size: 12px; color: var(--text-muted);">อัปเดตล่าสุด</span>
         </div>
 
-        <div class="coupon-card">
-          <div class="coupon-left">
-            <h5>ส่วนลดค่าบริการ 10%</h5>
-            <p>ใช้ได้ทุกสาขา (จอหอ, ลากูน่า, โคกสวาย)</p>
+        <div id="privilegesContainer">
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <h5>ฟรี! ตรวจเช็คสภาพเครื่อง 20 รายการ</h5>
+              <p>ตรวจเช็คหน้าจอ แบตเตอรี่ กล้อง ลำโพง ฟรีไม่มีค่าใช้จ่าย</p>
+            </div>
+            <div class="coupon-badge">ฟรีสมาชิก</div>
           </div>
-          <div class="coupon-badge">สมาชิก KP</div>
-        </div>
-
-        <div class="coupon-card">
-          <div class="coupon-left">
-            <h5>ตรวจเช็คเครื่องฟรี 10 รายการ</h5>
-            <p>สิทธิพิเศษตรวจสภาพสมาร์ตโฟน</p>
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <h5>ส่วนลดอะไหล่และอุปกรณ์เสริม 10%</h5>
+              <p>เมื่อซื้อเคส ฟิล์มกระจก หรืออุปกรณ์ชาร์จ</p>
+            </div>
+            <div class="coupon-badge">สิทธิพิเศษ</div>
           </div>
-          <div class="coupon-badge">สิทธิ์ฟรี</div>
-        </div>
-
-        <div class="coupon-card">
-          <div class="coupon-left">
-            <h5>สะสมคะแนนแลกของรางวัล</h5>
-            <p>ทุกยอดซื้อ 50 บาท รับ 1 คะแนน</p>
+          <div class="coupon-card">
+            <div class="coupon-left">
+              <h5>สะสมคะแนนแลกของรางวัล</h5>
+              <p>ทุกยอดซื้อสะสมแต้มแลกรับส่วนลดและของพรีเมียม</p>
+            </div>
+            <div class="coupon-badge">สะสมแต้ม</div>
           </div>
-          <div class="coupon-badge">สะสมแต้ม</div>
         </div>
       </div>
 
-      <!-- User Profile & Edit Action -->
+      <!-- User Profile Info & Admin Entry -->
       <div class="glass-card">
         <div class="section-title">
           <span><i class="fa-solid fa-address-card text-gold"></i> ข้อมูลสมาชิกของฉัน</span>
-          <button type="button" class="btn-outline-gold" onclick="openEditProfileModal()">
-            <i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูล
-          </button>
+          <!-- แสดงเฉพาะ Admin -->
+          <a href="admin.html" id="btnAdminAccess" class="btn-outline-gold hidden" style="text-decoration: none; padding: 5px 12px; font-size: 12px; border-radius: 20px;">
+            <i class="fa-solid fa-shield-halved"></i> ระบบหลังบ้าน
+          </a>
         </div>
 
         <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
@@ -1108,52 +1109,6 @@
 
     </div>
 
-  </div>
-
-  <!-- Modal สำหรับแก้ไขข้อมูลส่วนตัว -->
-  <div class="modal-overlay" id="editModal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-user-pen text-gold"></i> แก้ไขข้อมูลส่วนตัว</h3>
-        <button type="button" class="modal-close" onclick="closeEditProfileModal()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <form id="editProfileForm" onsubmit="handleUpdateProfile(event)">
-        
-        <div class="form-group">
-          <label class="form-label">ชื่อ - นามสกุล</label>
-          <input type="text" id="editFullName" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">เบอร์โทรศัพท์</label>
-          <input type="tel" id="editPhone" class="form-control" maxlength="12" required oninput="formatPhoneInput(this)">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">อีเมล</label>
-          <input type="email" id="editEmail" class="form-control">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">รุ่นโทรศัพท์ที่ใช้ (คั่นด้วยเครื่องหมายจุลภาค)</label>
-          <input type="text" id="editPhoneModels" class="form-control" placeholder="เช่น iPhone 15, iPad Pro">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">สาขาที่เข้าใช้บริการประจำ</label>
-          <select id="editBranch" class="form-control" style="padding-left: 14px;">
-            <option value="จอหอ">จอหอ</option>
-            <option value="ลากูน่า">ลากูน่า</option>
-            <option value="โคกสวาย">โคกสวาย</option>
-          </select>
-        </div>
-
-        <button type="submit" id="saveEditBtn" class="btn-gold">
-          <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล
-        </button>
-      </form>
-    </div>
   </div>
 
   <!-- JAVASCRIPT LOGIC -->
@@ -1612,61 +1567,78 @@
       Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
     }
 
-    function openEditProfileModal() {
-      if (!currentMemberData) return;
-      document.getElementById("editFullName").value = currentMemberData.fullName || "";
-      document.getElementById("editPhone").value = currentMemberData.phone || "";
-      document.getElementById("editEmail").value = currentMemberData.customEmail || currentMemberData.lineEmail || "";
-      document.getElementById("editPhoneModels").value = currentMemberData.phoneModels || "";
-      document.getElementById("editBranch").value = currentMemberData.branch || "จอหอ";
-
-      document.getElementById("editModal").classList.add("active");
-    }
-
-    function closeEditProfileModal() {
-      document.getElementById("editModal").classList.remove("active");
-    }
-
-    async function handleUpdateProfile(e) {
-      e.preventDefault();
-      const saveBtn = document.getElementById("saveEditBtn");
-      saveBtn.disabled = true;
-      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
-
-      const payload = {
-        action: "update",
-        lineUid: currentMemberData.lineUid,
-        fullName: document.getElementById("editFullName").value.trim(),
-        phone: document.getElementById("editPhone").value.replace(/\D/g, ""),
-        customEmail: document.getElementById("editEmail").value.trim(),
-        phoneModels: document.getElementById("editPhoneModels").value.trim(),
-        branch: document.getElementById("editBranch").value
-      };
-
-      try {
-        const result = await callGasApi(payload);
-        onUpdateSuccess(result, saveBtn);
-      } catch (err) {
-        onUpdateError(err, saveBtn);
-      }
-    }
-
-    function onUpdateSuccess(res, saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล';
-      closeEditProfileModal();
-
-      if (res && res.success) {
-        Swal.fire({ icon: "success", title: "อัปเดตข้อมูลสำเร็จ", confirmButtonColor: "#d4af37" });
+    function handleCheckMemberResponse(res) {
+      if (res && res.success && res.isRegistered && res.member) {
         currentMemberData = res.member;
-        renderMemberDashboard(res.member);
+        if (res.isAdmin) currentMemberData.isAdmin = true;
+        if (res.privileges) renderPrivileges(res.privileges);
+        
+        // บันทึกสิทธิ์ Admin ลง session สำหรับส่งต่อไปหน้า admin.html
+        if (currentMemberData.isAdmin && currentLineProfile) {
+          sessionStorage.setItem("KP_ADMIN_LINE_UID", currentLineProfile.userId);
+          sessionStorage.setItem("KP_ADMIN_NAME", currentMemberData.fullName || currentLineProfile.displayName);
+        }
+
+        renderMemberDashboard(currentMemberData);
+      } else {
+        if (res && res.privileges) renderPrivileges(res.privileges);
+        showRegistrationForm();
       }
     }
 
-    function onUpdateError(err, saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล';
-      Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.toString(), confirmButtonColor: "#d4af37" });
+    function renderPrivileges(privilegesList) {
+      const container = document.getElementById("privilegesContainer");
+      if (!container || !privilegesList || privilegesList.length === 0) return;
+
+      container.innerHTML = privilegesList.map(p => `
+        <div class="coupon-card">
+          <div class="coupon-left">
+            <h5>${escapeHtml(p.title)}</h5>
+            <p>${escapeHtml(p.description || "")}</p>
+            ${p.points > 0 ? `<span style="font-size: 11px; color: var(--gold);"><i class="fa-solid fa-gem"></i> ใช้ ${p.points} คะแนน</span>` : ''}
+          </div>
+          <div class="coupon-badge">${escapeHtml(p.tag || "สิทธิพิเศษ")}</div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    function renderMemberDashboard(member) {
+      document.getElementById("loadingScreen").classList.add("hidden");
+      document.getElementById("registerScreen").classList.add("hidden");
+      document.getElementById("memberScreen").classList.remove("hidden");
+
+      document.getElementById("cardMemberId").textContent = member.memberCode || ("KP-" + String(member.id).padStart(4, '0'));
+      document.getElementById("cardMemberName").textContent = member.fullName || member.lineDisplayName;
+      document.getElementById("cardTierBadge").textContent = member.tier || "KP MEMBER";
+      document.getElementById("cardPoints").textContent = Number(member.points || 0).toLocaleString();
+      document.getElementById("cardBranch").textContent = member.branch || "จอหอ";
+
+      document.getElementById("dashCurrentPoints").textContent = Number(member.points || 0).toLocaleString() + " คะแนน";
+      document.getElementById("dashTotalSpent").textContent = "฿" + Number(member.totalSpent || 0).toLocaleString();
+      
+      document.getElementById("dashPhone").textContent = member.phone || "-";
+      document.getElementById("dashEmail").textContent = member.customEmail || member.lineEmail || "-";
+      document.getElementById("dashModels").textContent = member.phoneModels || "-";
+      document.getElementById("dashRegDate").textContent = member.registerDate || "-";
+
+      // แสดงปุ่มเข้าสู่ระบบหลังบ้าน ถ้าคนนี้เป็น Admin
+      const adminBtn = document.getElementById("btnAdminAccess");
+      if (adminBtn) {
+        if (member.isAdmin) {
+          adminBtn.classList.remove("hidden");
+        } else {
+          adminBtn.classList.add("hidden");
+        }
+      }
+
+      generateCodes(member.lineUid || member.memberCode);
     }
 
     function refreshMemberData() {
